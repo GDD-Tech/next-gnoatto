@@ -1,0 +1,12 @@
+.gnoVehicleList {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 32px;
+}
+
+.gnoVehicle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
