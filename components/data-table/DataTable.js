@@ -16,14 +16,15 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
-import { Box } from "@mui/material";
+import { Box, Checkbox, FormControlLabel } from "@mui/material";
 
-export default function DataTable({ vehicleList = [], onDelete, onDeleteAll }) {
-  // Keep only the last 10 inserted items (most recent at the end of the array)
-  const getLastTen = (arr) => {
-    if (!arr || !Array.isArray(arr)) return [];
-    return arr.length > 10 ? arr.slice(-10) : arr.slice();
-  };
+export default function DataTable({ vehicleList = [], onDelete, onDeleteAll, openResetDialog = false, onResetDialogOpened }) {
+
+    const getLastTen = (arr) => {
+        if (!arr || !Array.isArray(arr)) return [];
+        const last = arr.length > 10 ? arr.slice(-10) : arr.slice();
+        return last.reverse();
+    };
 
   const [rows, setRows] = useState(getLastTen(vehicleList));
 
@@ -46,9 +47,12 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll }) {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteRow, setDeleteRow] = useState(null);
     const [confirmSingleOpen, setConfirmSingleOpen] = useState(false);
+    const [confirmAllChecked, setConfirmAllChecked] = useState(false);
 
-    const openConfirm = () => setConfirmOpen(true);
-    const closeConfirm = () => setConfirmOpen(false);
+    const closeConfirm = () => {
+        setConfirmOpen(false);
+        setConfirmAllChecked(false);
+    };
 
     const openConfirmSingle = (row) => {
         setDeleteRow(row);
@@ -81,7 +85,27 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll }) {
 
         // Clear local rows view
         setRows([]);
+        setConfirmAllChecked(false);
         closeConfirm();
+    };
+
+    // If parent requests to open the reset confirmation dialog, open it and notify parent
+    useEffect(() => {
+        if (openResetDialog) {
+            setConfirmAllChecked(false);
+            setConfirmOpen(true);
+            if (typeof onResetDialogOpened === "function") {
+                try {
+                    onResetDialogOpened();
+                } catch (e) {
+                    console.error("onResetDialogOpened error", e);
+                }
+            }
+        }
+    }, [openResetDialog, onResetDialogOpened]);
+
+    const handleConfirmAllChange = (event) => {
+        setConfirmAllChecked(!!event.target.checked);
     };
 
   // Compute counts per type from the full vehicleList (not only the last 10)
@@ -151,12 +175,7 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll }) {
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', m: 3 }}>
                 <Box sx={{ minWidth: 300 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={openConfirm}>
-                            Resetar Contagem
-                        </Button>
-                    </Box>
-                    <TableContainer component={Paper} sx={{ mt: 2, mb: 1 }}>
+                    <TableContainer component={Paper}>
                         <Table size="small">
                             <TableHead>
                                 <TableRow>
@@ -175,7 +194,7 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll }) {
                                     typeCounts.map((t) => (
                                         <TableRow key={t.type} hover>
                                             <TableCell>{t.type}</TableCell>
-                                            <TableCell align="right">{t.count}</TableCell>
+                                            <TableCell align="center">{t.count}</TableCell>
                                         </TableRow>
                                     ))
                                 )}
@@ -189,16 +208,20 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll }) {
         <Dialog open={confirmOpen} onClose={closeConfirm}>
             <DialogTitle>Confirmar exclusão</DialogTitle>
             <DialogContent>
-                <DialogContentText>
-                    Tem certeza que deseja excluir todos os registros exibidos? Esta ação não pode ser desfeita.
-                </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={closeConfirm}>Cancelar</Button>
-                <Button color="error" onClick={handleConfirmDeleteAll} autoFocus>
-                    Excluir todos
-                </Button>
-            </DialogActions>
+                    <DialogContentText>
+                        Tem certeza que deseja excluir todos os registros exibidos? Esta ação não pode ser desfeita.
+                    </DialogContentText>
+                    <FormControlLabel
+                        control={<Checkbox checked={confirmAllChecked} onChange={handleConfirmAllChange} />}
+                        label="Confirmo que quero excluir todos os dados."
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeConfirm}>Cancelar</Button>
+                    <Button color="error" onClick={handleConfirmDeleteAll} disabled={!confirmAllChecked}>
+                        Excluir todos
+                    </Button>
+                </DialogActions>
         </Dialog>
 
         {/* Confirmation dialog for deleting single record */}
@@ -211,11 +234,7 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll }) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={closeConfirmSingle}>Cancelar</Button>
-                <Button 
-                    color="error" 
-                    onClick={() => deleteRow && handleDelete(deleteRow)} 
-                    autoFocus
-                >
+                <Button color="error" onClick={() => deleteRow && handleDelete(deleteRow)} autoFocus>
                     Excluir
                 </Button>
             </DialogActions>

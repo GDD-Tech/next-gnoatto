@@ -20,7 +20,7 @@ import logo from '@/assets/logo.webp'
 import { readFile } from "../../utils/fileReader";
 
 const drawerWidth = 240;
-const navItems = ['Importar Arquivo', 'Exportar Dados'];
+const navItems = ['Importar Arquivo', 'Resetar Contagem', 'Exportar Dados'];
 
 function MainHeader(props) {
   const { window } = props;
@@ -89,8 +89,12 @@ function MainHeader(props) {
       case 'Exportar Dados':
         exportStoredVehicles();
         break;
+      case 'Resetar Contagem':
+        handleReset();
+        break;
       case 'Importar Arquivo':
         handleFileUpload();
+        break;
       default:
         break;
     }
@@ -103,6 +107,12 @@ function MainHeader(props) {
     }
     const result = await readFile(file);
     props.onLoadRecords(result);
+  }
+
+  function handleReset(){
+    if (typeof props.onResetRequest === 'function') {
+      props.onResetRequest();
+    }
   }
 
   const drawer = (

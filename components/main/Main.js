@@ -6,6 +6,7 @@ import ImageLoader from "@/components/video-player/ImageLoader";
 export default function Main() {
     const [registros, setRegistros] = useState([]);
     const [imagens, setImagens] = useState({});
+    const [resetRequest, setResetRequest] = useState(false);
 
     function loadZipData(result) {
         const records = result?.tempRegistros ?? [];
@@ -16,8 +17,8 @@ export default function Main() {
 
     return (
         <>
-            <MainHeader onLoadRecords={loadZipData}/>
-            <ImageLoader loadedRecords={registros} loadedImages={imagens} />
+            <MainHeader onLoadRecords={loadZipData} onResetRequest={() => setResetRequest(true)} />
+            <ImageLoader loadedRecords={registros} loadedImages={imagens} resetRequest={resetRequest} onResetHandled={() => setResetRequest(false)} />
         </>
     );
 }

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import * as React from "react";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
 export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens }) {
@@ -35,25 +35,16 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
   return (
     <Box>
       {registroAtual && (
-        <div className="mt-4">
-          <h1 className="text-xl font-bold mb-3">
-            Registro {currentIndex + 1} de {registros.length}
-          </h1>
-
+        <>
           {/* 📸 Exibe a imagem correspondente */}
           {imagemUrl && (
-            <div className="mb-3">
-              <Image
-                src={imagemUrl}
-                alt={registroAtual.predicted_class}
-                width={800}
-                height={500}
-                className="max-w-full rounded shadow"
-              />
-              <p className="text-sm mt-1 text-center">
-                {registroAtual.image_path}
-              </p>
-            </div>
+            <Box>
+              <Image src={imagemUrl} alt={registroAtual.predicted_class} width={800} height={500}/>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div>Registro {currentIndex + 1} de {registros.length}</div>
+                <div>{registroAtual.image_path}</div>
+              </Box>
+            </Box>
           )}
 
           {/* 🧾 Informações do registro
@@ -71,7 +62,14 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
             <Button variant="contained" sx={{backgroundColor: '#22423A'}} onClick={handlePrev} startIcon={<ArrowBack />} disabled={currentIndex === 0}>Anterior</Button>
             <Button variant="contained" sx={{backgroundColor: '#22423A'}} onClick={handleNext} endIcon={<ArrowForward />} disabled={currentIndex === registros.length - 1}>Proximo</Button>
           </div>
-        </div>
+        </>
+      )}
+      {!registroAtual && (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 800, minHeight: 500, border: '2px dashed #ccc', borderRadius: 2, backgroundColor: '#f9f9f9', }}>
+          <Typography variant="h6" color="textSecondary">
+            Selecione um arquivo para começar
+          </Typography>
+        </Box>
       )}
     </Box>
   );
