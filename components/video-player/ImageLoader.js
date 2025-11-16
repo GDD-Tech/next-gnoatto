@@ -176,27 +176,25 @@ export default function ImageLoader(props) {
   return (
     <>
       <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center'}}>
-        <Box sx={{p: 3, maxWidth: '50vw'}}>
+        <Box sx={{p: 2, maxWidth: '50vw'}}>
           <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}}/>
         </Box>
         {selectedVehicle && (
-          <Box>
-            <Box sx={{p: 3, maxWidth: '50vw'}}>
-              <div className="gno-flex-column gno-gap-8">
-                <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Direção</Typography>
-                <div className="gno-flex gno-gap-16">
-                  <TextField label="Esquerda" color="success" size="small" focused value={leftDirection} onChange={handleChangeLeft}/>
-                  <TextField label="Direita" color="error" size="small" focused value={rightDirection} onChange={handleChangeRight}/>
-                </div>
+          <Box sx={{p: 2, maxWidth: '50vw'}}>
+            <div className="gno-flex-column gno-gap-8">
+              <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Direção</Typography>
+              <div className="gno-flex gno-gap-16">
+                <TextField label="Esquerda" color="success" size="small" focused value={leftDirection} onChange={handleChangeLeft}/>
+                <TextField label="Direita" color="error" size="small" focused value={rightDirection} onChange={handleChangeRight}/>
               </div>
-              <Box sx={{ pt: 3}}>
-                <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Painel de Veiculos</Typography>
-                <div className='gno-flex-column'>
-                  <VehicleItemList vehicleList={passeioImgList} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Passeio'} left={leftDirection} right={rightDirection}></VehicleItemList>
-                  <VehicleItemList vehicleList={onibusImgList} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Onibus'} left={leftDirection} right={rightDirection}></VehicleItemList>
-                  <VehicleItemList vehicleList={caminhaoImgList} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Caminhão'} left={leftDirection} right={rightDirection}></VehicleItemList>
-                </div>
-              </Box>
+            </div>
+            <Box sx={{ pt: 3}}>
+              <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Painel de Veiculos</Typography>
+              <div className='gno-flex-column'>
+                <VehicleItemList vehicleList={passeioImgList} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Passeio'} left={leftDirection} right={rightDirection}></VehicleItemList>
+                <VehicleItemList vehicleList={onibusImgList} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Onibus'} left={leftDirection} right={rightDirection}></VehicleItemList>
+                <VehicleItemList vehicleList={caminhaoImgList} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Caminhão'} left={leftDirection} right={rightDirection}></VehicleItemList>
+              </div>
             </Box>
           </Box>
         )}

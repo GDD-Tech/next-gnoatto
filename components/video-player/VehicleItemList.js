@@ -1,4 +1,4 @@
-import { Button, Typography } from "@mui/material";
+import { Button, Typography, Box } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import Image from "next/image";
 import classes from '@/components/video-player/VehicleItemList.module.css'
@@ -11,9 +11,7 @@ export default function VehicleItemList({ vehicleList, label, onVehicleClick, on
   }
 
   function handleVehicleClick(direction, vehicle){
-    if(label !== 'Caminhão'){
-      handleDirectionClick(direction, vehicle);
-    } else {
+    if(label === 'Caminhão'){
       onVehicleClick(direction, label, vehicle);
     }
   }
@@ -24,18 +22,18 @@ export default function VehicleItemList({ vehicleList, label, onVehicleClick, on
 
       <div className={classes.gnoVehicleList}>
         {vehicleList.map((img, index) => (
-          <div key={index} className="gno-flex-column gno-align-center">
-            <div className={classes.gnoVehicle}>
+          <Box key={index} sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: 220}}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
               {/* <Button sx={{ minWidth: 40, p: 1}} variant="contained" color="primary" onClick={() => handleVehicleClick('left', img)} ><AddIcon /></Button> */}
               <Button sx={{ minWidth: 50, p: 1}} variant="contained" color="success" onClick={() => handleDirectionClick('right', img,)} ><ArrowForward /></Button>
-              <div style={{ cursor: 'pointer' }} onClick={() => handleVehicleClick('none', img)}>
+              <div style={{ cursor: label === 'Caminhão' ? 'pointer' : 'default' }} onClick={() => handleVehicleClick('none', img)}>
                 <Image src={img.image} alt={img.description} width={90} />
               </div>
               <Button sx={{ minWidth: 50, p: 1}} variant="contained" color="error" onClick={() => handleDirectionClick('left', img,)} ><ArrowBack /></Button>
               {/* <Button sx={{ minWidth: 40, p: 1}} variant="contained" color="primary" onClick={() => handleVehicleClick('right', img)} ><AddIcon /></Button> */}
-            </div>
+            </Box>
             <Typography color="error">{img.description}</Typography>
-          </div>
+          </Box>
         ))}
       </div>
     </>

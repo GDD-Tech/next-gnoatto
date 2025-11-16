@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import * as React from "react";
 import { Box, Button, Typography } from "@mui/material";
@@ -7,6 +7,14 @@ import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
 export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // When registros change and have items, select the first one automatically
+  useEffect(() => {
+    if (registros && registros.length > 0) {
+      setCurrentIndex(0);
+      onVehicleSelect(registros[0]);
+    }
+  }, [registros, onVehicleSelect]);
 
   const getStatus = (registro) => {
     if (!registro?.track_id) return "Pendente";
