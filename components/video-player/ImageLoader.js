@@ -1,7 +1,8 @@
 'use client'
-import { Box, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import AddIcon from '@mui/icons-material/Add';
 
 import passeio from "@/assets/vehicles/01 Passeio.png";
 import reboque1 from "@/assets/vehicles/02 Reboque Passeio 1 Eixo.png";
@@ -175,19 +176,20 @@ export default function ImageLoader(props) {
 
   return (
     <>
-      <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center'}}>
-        <Box sx={{p: 2, maxWidth: '50vw'}}>
+      <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center'}}>
+        <Box sx={{p: 2, width:'100%', maxWidth: '50vw'}}>
+          <Box sx={{display: 'flex', flexDirection: 'column'}}>
+            <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Direção</Typography>
+            <Box sx={{ display: 'flex', gap: 2, my: 1}}>
+              <TextField label="Esquerda" color="error" size="small" focused value={leftDirection} onChange={handleChangeLeft}/>
+              <TextField label="Direita" color="success" size="small" focused value={rightDirection} onChange={handleChangeRight}/>
+              <Button variant="contained" color="primary" onClick={() => handleChangeRight} ><AddIcon /></Button>
+            </Box>
+          </Box>
           <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}}/>
         </Box>
         {selectedVehicle && (
           <Box sx={{p: 2, maxWidth: '50vw'}}>
-            <div className="gno-flex-column gno-gap-8">
-              <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Direção</Typography>
-              <div className="gno-flex gno-gap-16">
-                <TextField label="Esquerda" color="success" size="small" focused value={leftDirection} onChange={handleChangeLeft}/>
-                <TextField label="Direita" color="error" size="small" focused value={rightDirection} onChange={handleChangeRight}/>
-              </div>
-            </div>
             <Box sx={{ pt: 3}}>
               <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Painel de Veiculos</Typography>
               <div className='gno-flex-column'>
@@ -199,16 +201,14 @@ export default function ImageLoader(props) {
           </Box>
         )}
       </Box>
-      <BasicModal isOpen={modalOpen} onClose={() => setModalOpen(false)} vehicle={selectedVehicle} left={leftDirection} right={rightDirection} direction={vehicleDirection} onHandleDirection={handleDirection}/>
-      {toastMessage && <Toaster message={toastMessage} type={toastType} onReset={resetToastMessage}/>}
-      {storedVehicles.length > 0 && (
-        <DataTable
-          vehicleList={storedVehicles}
-          onDelete={deleteRow}
-          onDeleteAll={deleteAll}
-          openResetDialog={props.resetRequest}
-          onResetDialogOpened={props.onResetHandled}
-        />
+      {selectedVehicle && (
+        <Box>
+          <BasicModal isOpen={modalOpen} onClose={() => setModalOpen(false)} vehicle={selectedVehicle} left={leftDirection} right={rightDirection} direction={vehicleDirection} onHandleDirection={handleDirection}/>
+          {toastMessage && <Toaster message={toastMessage} type={toastType} onReset={resetToastMessage}/>}
+          {storedVehicles.length > 0 && (
+            <DataTable vehicleList={storedVehicles} onDelete={deleteRow} onDeleteAll={deleteAll} openResetDialog={props.resetRequest} onResetDialogOpened={props.onResetHandled} />
+          )}
+        </Box>
       )}
     </>
   );

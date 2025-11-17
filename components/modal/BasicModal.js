@@ -52,7 +52,7 @@ export default function BasicModal({ isOpen, onClose, vehicle, left, right, dire
 
         {['none', 'left'].includes(direction) && 
           <div style={{ marginTop: '8px'}}>
-            <Typography variant="subtitle2" color='success'>
+            <Typography variant="subtitle2" color='error'>
               <strong>Direção:</strong> {left}
             </Typography>
             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
@@ -67,7 +67,7 @@ export default function BasicModal({ isOpen, onClose, vehicle, left, right, dire
 
         {['none', 'right'].includes(direction) && 
           <div style={{ marginTop: '8px'}}>
-            <Typography variant="subtitle2" color='error'>
+            <Typography variant="subtitle2" color='success'>
               <strong>Direção:</strong> {right}
             </Typography>
             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>

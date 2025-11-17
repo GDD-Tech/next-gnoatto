@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import * as React from "react";
 import { Box, Button, Typography } from "@mui/material";
@@ -8,12 +8,24 @@ import { ArrowBack, ArrowForward } from "@mui/icons-material";
 export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // When registros change and have items, select the first one automatically
+  const prevCountRef = useRef(registros ? registros.length : 0);
+  const prevFirstRef = useRef(registros && registros[0] ? registros[0].image_path : null);
+
   useEffect(() => {
-    if (registros && registros.length > 0) {
+    const prevCount = prevCountRef.current || 0;
+    const prevFirst = prevFirstRef.current;
+    const currCount = registros ? registros.length : 0;
+    const currFirst = registros && registros[0] ? registros[0].image_path : null;
+
+    const isNewLoad = (prevCount === 0 && currCount > 0) || (currFirst && prevFirst !== currFirst);
+
+    if (isNewLoad) {
       setCurrentIndex(0);
-      onVehicleSelect(registros[0]);
+      if (typeof onVehicleSelect === 'function') onVehicleSelect(registros[0]);
     }
+
+    prevCountRef.current = currCount;
+    prevFirstRef.current = currFirst;
   }, [registros, onVehicleSelect]);
 
   const getStatus = (registro) => {
