@@ -59,7 +59,8 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
           {/* 📸 Exibe a imagem correspondente */}
           {imagemUrl && (
             <Box>
-              <Image src={imagemUrl} alt={registroAtual.predicted_class} width={800} height={500}/>
+              <img src={imagemUrl} alt={registroAtual.predicted_class} width='100%'/>
+              {/* <Image src={imagemUrl} alt={registroAtual.predicted_class} width={800} height={500}/> */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>Registro {currentIndex + 1} de {registros.length}</div>
                 <div>{registroAtual.image_path}</div>

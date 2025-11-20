@@ -178,14 +178,16 @@ export default function ImageLoader(props) {
     <>
       <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center'}}>
         <Box sx={{p: 2, width:'100%', maxWidth: '50vw'}}>
-          <Box sx={{display: 'flex', flexDirection: 'column'}}>
-            <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Direção</Typography>
-            <Box sx={{ display: 'flex', gap: 2, my: 1}}>
-              <TextField label="Esquerda" color="error" size="small" focused value={leftDirection} onChange={handleChangeLeft}/>
-              <TextField label="Direita" color="success" size="small" focused value={rightDirection} onChange={handleChangeRight}/>
-              <Button variant="contained" color="primary" onClick={() => handleChangeRight} ><AddIcon /></Button>
+          {selectedVehicle && (
+            <Box sx={{display: 'flex', flexDirection: 'column'}}>
+              <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Direção</Typography>
+              <Box sx={{ display: 'flex', gap: 2, my: 1}}>
+                <TextField label="Esquerda" color="error" size="small" focused value={leftDirection} onChange={handleChangeLeft}/>
+                <TextField label="Direita" color="success" size="small" focused value={rightDirection} onChange={handleChangeRight}/>
+                <Button variant="contained" color="primary" onClick={() => handleChangeRight} ><AddIcon /></Button>
+              </Box>
             </Box>
-          </Box>
+          )}
           <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}}/>
         </Box>
         {selectedVehicle && (
