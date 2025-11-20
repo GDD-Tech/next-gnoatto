@@ -1,11 +1,10 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
+import { useState, useEffect, useRef, useCallback } from "react";
 import * as React from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
-export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens }) {
+export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const prevCountRef = useRef(registros ? registros.length : 0);
@@ -33,13 +32,22 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
     return storedVehicles.some(v => v.trackId === registro.track_id) ? "Completo" : "Pendente";
   };
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setCurrentIndex((prev) => {
-      const nextIndex = prev + 1 < registros.length ? prev + 1 : prev;
-      onVehicleSelect(registros[nextIndex]);
+      const nextIndex = registros && prev + 1 < registros.length ? prev + 1 : prev;
+      if (registros && registros[nextIndex] && typeof onVehicleSelect === 'function') {
+        onVehicleSelect(registros[nextIndex]);
+      }
       return nextIndex;
     });
-  };
+  }, [registros, onVehicleSelect]);
+
+  useEffect(() => {
+    if (typeof registerNext === 'function') {
+      registerNext(handleNext);
+      return () => registerNext(null);
+    }
+  }, [registerNext, handleNext]);
 
   const handlePrev = () => {
     setCurrentIndex((prev) => {
@@ -60,7 +68,6 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
           {imagemUrl && (
             <Box>
               <img src={imagemUrl} alt={registroAtual.predicted_class} width='100%'/>
-              {/* <Image src={imagemUrl} alt={registroAtual.predicted_class} width={800} height={500}/> */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>Registro {currentIndex + 1} de {registros.length}</div>
                 <div>{registroAtual.image_path}</div>

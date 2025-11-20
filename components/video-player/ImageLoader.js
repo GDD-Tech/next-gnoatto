@@ -1,6 +1,6 @@
 'use client'
 import { Box, Button, TextField, Typography } from "@mui/material";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import AddIcon from '@mui/icons-material/Add';
 
@@ -122,8 +122,15 @@ export default function ImageLoader(props) {
     localStorage.setItem('vehicleList', JSON.stringify(updatedList));
 
     handleToastMessage("Veículo adicionado!", "success");
-    if(!exists){
-      //TODO: implementar para passar automaticamente para o próximo registro
+    if (!exists) {
+      // nothing special for now
+    }
+
+    // If ImportFile registered a next() function, call it to advance to next record
+    try {
+      if (nextFnRef.current) nextFnRef.current();
+    } catch (e) {
+      console.error('error calling registered next function', e);
     }
   }
 
@@ -174,6 +181,8 @@ export default function ImageLoader(props) {
     localStorage.removeItem('vehicleList');
   }
 
+  const nextFnRef = useRef(null);
+
   return (
     <>
       <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center'}}>
@@ -188,7 +197,7 @@ export default function ImageLoader(props) {
               </Box>
             </Box>
           )}
-          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}}/>
+          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} />
         </Box>
         {selectedVehicle && (
           <Box sx={{p: 2, maxWidth: '50vw'}}>
