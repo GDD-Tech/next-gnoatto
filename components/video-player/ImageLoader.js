@@ -3,77 +3,14 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import AddIcon from '@mui/icons-material/Add';
+import { getVehicleData } from "@/utils/staticVehicles";
 
-import passeio from "@/assets/vehicles/01 Passeio.png";
-import reboque1 from "@/assets/vehicles/02 Reboque Passeio 1 Eixo.png";
-import reboque2 from "@/assets/vehicles/03 Reboque Passeio 2 Eixos.png";
-import moto from "@/assets/vehicles/moto.png";
-import onibus2 from "@/assets/vehicles/04 2C 2 Eixos.png";
-import onibus3 from "@/assets/vehicles/05 3C 3 Eixos.png";
-import onibus4 from "@/assets/vehicles/06 4C 4 Eixos.png";
-import caminhao2 from "@/assets/vehicles/07 2C 16.png";
-import caminhao22 from "@/assets/vehicles/08 2C 22.png";
-import caminhao3 from "@/assets/vehicles/09 3C.png";
-import caminhao4 from "@/assets/vehicles/4C.png";
-import caminhao5 from "@/assets/vehicles/11 2S2 4 Eixos.png";
-import c2S35Eixos from "@/assets/vehicles/2S3 5 Eixos.png";
-import c3S36Eixos from "@/assets/vehicles/3S3 6 Eixos.png";
-import c2C24Eixos from "@/assets/vehicles/2C2 4 Eixos.png";
-import c2I35Eixos from "@/assets/vehicles/2I3 5 Eixos.png";
-import c2J35Eixos from "@/assets/vehicles/2J3 5 Eixos.png";
-import c3S25Eixos from "@/assets/vehicles/3S2 5 Eixos.png";
-import c4S37Eixos from "@/assets/vehicles/4S3 7 Eixos.png";
-import c3I36Eixos from "@/assets/vehicles/3I3 6 Eixos.png";
-import c3J36Eixos from "@/assets/vehicles/3J3 6 Eixos.png";
-import c3T47Eixos from "@/assets/vehicles/3T4 7 Eixos Bitrem.png";
-import c3T69Eixos from "@/assets/vehicles/3T6 9 Eixos Rodotrem Tritrem.png";
-import c2C35Eixos from "@/assets/vehicles/2C3 5 Eixos.png";
-import c3C25Eixos from "@/assets/vehicles/3C2 5 Eixos.png";
-import c3C36Eixos from "@/assets/vehicles/3C3 6 Eixos.png";
-import c3D47Eixos from "@/assets/vehicles/3D4 7 Eixos.png";
-import c3D69Eixos from "@/assets/vehicles/3D6 9 Eixos Rodotrem.png";
 import ImportFile from "./ImportFile";
 import VehicleItemList from "./VehicleItemList";
 import BasicModal from "../modal/BasicModal";
+import NewVehicleModal from "../modal/NewVehicleModal";
 import Toaster from "../toaster/Toaster";
 import DataTable from "../data-table/DataTable";
-
-const passeioImgList = [
-  { id: 'passeio', image: passeio, type:'passeio', description: "Passeio" },
-  { id: 'moto', image: moto, type:'passeio', description: "Moto" },
-  { id: 'reboque1', image: reboque1, type:'passeio', description: "Reboque Passeio 1 Eixo" },
-  { id: 'reboque2', image: reboque2, type:'passeio', description: "Reboque Passeio 2 Eixos" },
-];
-
-const onibusImgList = [
-  { id: 'onibus2', image: onibus2, type:'onibus', description: "2C 2 Eixos" },
-  { id: 'onibus3', image: onibus3, type:'onibus', description: "3C 3 Eixos" },
-  { id: 'onibus4', image: onibus4, type:'onibus', description: "4C 4 Eixos" },
-]
-
-const caminhaoImgList = [
-  { id: 'caminhao2', image: caminhao2, type:'caminhao', description: "2C (16)" },
-  { id: 'caminhao22', image: caminhao22, type:'caminhao', description: "2C (22)" },
-  { id: 'caminhao3', image: caminhao3, type:'caminhao', description: "3C" },
-  { id: 'caminhao4', image: caminhao4, type:'caminhao', description: "4C" },
-  { id: 'caminhao5', image: caminhao5, type:'caminhao', description: "2S2 4 Eixos" },
-  { id: 'c2S35Eixos', image: c2S35Eixos, type:'caminhao', description: "2S3 5 Eixos" },
-  { id: 'c2I35Eixos', image: c2I35Eixos, type:'caminhao', description: "2I3 5 Eixos" },
-  { id: 'c2J35Eixos', image: c2J35Eixos, type:'caminhao', description: "2J3 5 Eixos" },
-  { id: 'c3S25Eixos', image: c3S25Eixos, type:'caminhao', description: "3S2 5 Eixos" },
-  { id: 'c3S36Eixos', image: c3S36Eixos, type:'caminhao', description: "3S3 6 Eixos" },
-  { id: 'c4S37Eixos', image: c4S37Eixos, type:'caminhao', description: "4S3 7 Eixos" },
-  { id: 'c3I36Eixos', image: c3I36Eixos, type:'caminhao', description: "3I3 6 Eixos" },
-  { id: 'c3J36Eixos', image: c3J36Eixos, type:'caminhao', description: "3J3 6 Eixos" },
-  { id: 'c3T47Eixos', image: c3T47Eixos, type:'caminhao', description: "3T4 7 Eixos Bitrem" },
-  { id: 'c3T69Eixos', image: c3T69Eixos, type:'caminhao', description: "3T6 9 Eixos Rodotrem Tritrem" },
-  { id: 'c2C24Eixos', image: c2C24Eixos, type:'caminhao', description: "2C2 4 Eixos" },
-  { id: 'c2C35Eixos', image: c2C35Eixos, type:'caminhao', description: "2C3 5 Eixos" },
-  { id: 'c3C25Eixos', image: c3C25Eixos, type:'caminhao', description: "3C2 5 Eixos" },
-  { id: 'c3C36Eixos', image: c3C36Eixos, type:'caminhao', description: "3C3 6 Eixos" },
-  { id: 'c3D47Eixos', image: c3D47Eixos, type:'caminhao', description: "3D4 7 Eixos" },
-  { id: 'c3D69Eixos', image: c3D69Eixos, type:'caminhao', description: "3D6 9 Eixos Rodotrem" },
-]
 
 export default function ImageLoader(props) {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
@@ -82,10 +19,12 @@ export default function ImageLoader(props) {
   const [rightDirection, setRightDirection] = useState('');
   const [vehicleLabel, setVehicleLabel] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [newVehicleModalOpen, setNewVehicleModalOpen] = useState(false);
   const [storedVehicles, setStoredVehicles] = useState([]);
   const [toastMessage, setToastMessage] = useState(null);
   const [toastType, setToastType] = useState('warning');
   const [vehicleDirection, setVehicleDirection] = useState('none');
+  const [isNewVehicle, setIsNewVehicle] = useState(false);
   
   useEffect(() => {
     const stored = localStorage.getItem('vehicleList');
@@ -97,10 +36,10 @@ export default function ImageLoader(props) {
     }
   }, []);
 
-  const handleDirection = (label, direction, vehicle, axles) => {
+  const handleDirection = (label, direction, vehicle, axles, isNew) => {
     const object = {
       id : uuidv4(),
-      trackId : selectedVehicle?.track_id,
+      trackId : isNew ? '' : selectedVehicle?.track_id,
       time : selectedVehicle?.time,
       date : selectedVehicle?.time,
       direction : direction === 'left' ? leftDirection : rightDirection,
@@ -126,11 +65,12 @@ export default function ImageLoader(props) {
       // nothing special for now
     }
 
-    // If ImportFile registered a next() function, call it to advance to next record
-    try {
-      if (nextFnRef.current) nextFnRef.current();
-    } catch (e) {
-      console.error('error calling registered next function', e);
+    if(!isNew){
+      try {
+        if (nextFnRef.current) nextFnRef.current();
+      } catch (e) {
+        console.error('error calling registered next function', e);
+      }
     }
   }
 
@@ -147,11 +87,12 @@ export default function ImageLoader(props) {
     return true;
   }
 
-  const handleVehicleClick = (direction, label, vehicle) => {
+  const handleVehicleClick = (direction, label, vehicle, isNew) => {
     setVehicleLabel(label);
     setVehicleDetails(vehicle);
     setVehicleDirection(direction);
     setModalOpen(true);
+    setIsNewVehicle(isNew)
   };
 
   const handleVehicleSelect = (vehicle) => {
@@ -181,6 +122,10 @@ export default function ImageLoader(props) {
     localStorage.removeItem('vehicleList');
   }
 
+  const handleAddNewVehicle = () =>{
+    setNewVehicleModalOpen(true);
+  }
+
   const nextFnRef = useRef(null);
 
   return (
@@ -190,10 +135,10 @@ export default function ImageLoader(props) {
           {selectedVehicle && (
             <Box sx={{display: 'flex', flexDirection: 'column'}}>
               <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Direção</Typography>
-              <Box sx={{ display: 'flex', gap: 2, my: 1}}>
+                <Box sx={{ display: 'flex', gap: 2, my: 1}}>
                 <TextField label="Esquerda" color="error" size="small" focused value={leftDirection} onChange={handleChangeLeft}/>
                 <TextField label="Direita" color="success" size="small" focused value={rightDirection} onChange={handleChangeRight}/>
-                <Button variant="contained" color="primary" onClick={() => handleChangeRight} ><AddIcon /></Button>
+                <Button variant="contained" color="primary" onClick={handleAddNewVehicle} ><AddIcon /></Button>
               </Box>
             </Box>
           )}
@@ -204,9 +149,9 @@ export default function ImageLoader(props) {
             <Box sx={{ pt: 3}}>
               <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Painel de Veiculos</Typography>
               <div className='gno-flex-column'>
-                <VehicleItemList vehicleList={passeioImgList} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Passeio'} left={leftDirection} right={rightDirection}></VehicleItemList>
-                <VehicleItemList vehicleList={onibusImgList} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Onibus'} left={leftDirection} right={rightDirection}></VehicleItemList>
-                <VehicleItemList vehicleList={caminhaoImgList} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Caminhão'} left={leftDirection} right={rightDirection}></VehicleItemList>
+                <VehicleItemList vehicleList={getVehicleData('passeio')} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Passeio'} left={leftDirection} right={rightDirection} isNew={false}></VehicleItemList>
+                <VehicleItemList vehicleList={getVehicleData('onibus')} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Onibus'} left={leftDirection} right={rightDirection} isNew={false}></VehicleItemList>
+                <VehicleItemList vehicleList={getVehicleData('caminhao')} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Caminhão'} left={leftDirection} right={rightDirection} isNew={false}></VehicleItemList>
               </div>
             </Box>
           </Box>
@@ -214,7 +159,17 @@ export default function ImageLoader(props) {
       </Box>
       {selectedVehicle && (
         <Box>
-          <BasicModal isOpen={modalOpen} onClose={() => setModalOpen(false)} vehicle={selectedVehicle} left={leftDirection} right={rightDirection} direction={vehicleDirection} onHandleDirection={handleDirection}/>
+          <BasicModal
+            isOpen={modalOpen}
+            onClose={() => setModalOpen(false)}
+            vehicle={selectedVehicle}
+            left={leftDirection}
+            right={rightDirection}
+            direction={vehicleDirection}
+            onHandleDirection={handleDirection}
+            isNew={isNewVehicle}
+          />
+          <NewVehicleModal isOpen={newVehicleModalOpen} onClose={() => setNewVehicleModalOpen(false)} getVehicleData={getVehicleData} handleVehicleClick={handleVehicleClick} handleDirection={handleDirection} leftDirection={leftDirection} rightDirection={rightDirection} />
           {toastMessage && <Toaster message={toastMessage} type={toastType} onReset={resetToastMessage}/>}
           {storedVehicles.length > 0 && (
             <DataTable vehicleList={storedVehicles} onDelete={deleteRow} onDeleteAll={deleteAll} openResetDialog={props.resetRequest} onResetDialogOpened={props.onResetHandled} />

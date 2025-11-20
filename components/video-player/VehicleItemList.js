@@ -3,15 +3,15 @@ import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import Image from "next/image";
 import classes from '@/components/video-player/VehicleItemList.module.css'
 
-export default function VehicleItemList({ vehicleList, label, onVehicleClick, onHandleDirection }) {
+export default function VehicleItemList({ vehicleList, label, onVehicleClick, onHandleDirection, isNew }) {
 
   function handleDirectionClick(direction, vehicle) {
-    onHandleDirection(label, direction, vehicle, 0);
+    onHandleDirection(label, direction, vehicle, 0, isNew);
   }
 
   function handleVehicleClick(direction, vehicle){
     if(label === 'Caminhão'){
-      onVehicleClick(direction, label, vehicle);
+      onVehicleClick(direction, label, vehicle, isNew);
     }
   }
 

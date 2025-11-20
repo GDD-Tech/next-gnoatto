@@ -18,7 +18,7 @@ const style = {
   p: 4,
 };
 
-export default function BasicModal({ isOpen, onClose, vehicle, left, right, direction, onHandleDirection }) {
+export default function BasicModal({ isOpen, onClose, vehicle, left, right, direction, onHandleDirection, isNew }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -39,14 +39,14 @@ export default function BasicModal({ isOpen, onClose, vehicle, left, right, dire
   ];
 
   function handleAxles(direction, qty){
-    onHandleDirection(null, direction, null, qty);
+    onHandleDirection(null, direction, null, qty, isNew);
     handleClose();
   }
 
   return (
     <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description" >
       <Box sx={style}>
-        <Typography id="modal-modal-title" variant="h6" component="h2">
+        <Typography variant="h6" component="h6">
           Selecione a quantidade de eixos erguidos. {vehicle?.description}
         </Typography>
 
