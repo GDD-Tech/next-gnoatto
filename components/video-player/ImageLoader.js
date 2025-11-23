@@ -41,10 +41,10 @@ export default function ImageLoader(props) {
       id : uuidv4(),
       trackId : isNew ? '' : selectedVehicle?.track_id,
       time : selectedVehicle?.time,
-      date : selectedVehicle?.time,
+      date : selectedVehicle?.date,
       direction : direction === 'left' ? leftDirection : rightDirection,
       fromTo : direction === 'left' ? (rightDirection + " - " + leftDirection) : (leftDirection + " - " + rightDirection),
-      type : vehicle?.description ?? vehicleDetails?.description,
+      type : vehicle?.exportName ?? vehicleDetails?.description,
       category : label ?? vehicleLabel,
       raisedAxles : axles
     }
