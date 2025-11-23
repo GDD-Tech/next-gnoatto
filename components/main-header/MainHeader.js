@@ -44,23 +44,78 @@ function MainHeader(props) {
         return;
       }
 
-      const headers = ['Categoria','Direção','De Para','Eixos Erguidos','Tipo','Track Id','Horario','Data'];
-      const rows = list.map((v) => {
-        return [
-          v.category ?? '',
-          v.direction ?? '',
-          v.fromTo ?? v.from_to ?? '',
-          v.raisedAxles ?? v.raised_axles ?? '',
-          v.type ?? '',
-          v.trackId ?? v.track_id ?? '',
-          v.time ?? '',
-          v.date ?? '',
-        ];
+      // Define vehicle types in the exact order you want
+      const vehicleTypes = ['2E', '3E', '4E', '2CB', '3CB', '4CB', '2C', '3C', '4C', '2S2', '2S3', '2I3', '2J3', '3S2', '3S3', '4S3', '3I3', '3J3', '3T4', '3T6', '2C2', '2C3', '3C2', '3C3', '3D4', '3D6', 'Moto'];
+
+      // Group by date -> fromTo (De Para) -> 15-minute time slots
+      const grouped = {};
+
+      list.forEach((v) => {
+        const date = v.date ?? v.time?.split(' ')[0] ?? 'unknown';
+        const time = v.time ?? '00:00';
+        const type = v.type ?? 'Desconhecido';
+        const fromTo = v.fromTo ?? v.from_to ?? '';
+
+        // Extract hour and minute from time (format: "HH:MM")
+        const [hourStr, minStr] = time.split(':');
+        const hour = parseInt(hourStr, 10) || 0;
+        const min = parseInt(minStr, 10) || 0;
+
+        // Calculate 15-minute bucket
+        const bucket = Math.floor(min / 15) * 15;
+        const nextBucket = (bucket + 15) % 60;
+        const nextHour = bucket + 15 >= 60 ? hour + 1 : hour;
+        const timeRange = `${String(hour).padStart(2, '0')}:${String(bucket).padStart(2, '0')} - ${String(nextHour).padStart(2, '0')}:${String(nextBucket).padStart(2, '0')}`;
+
+        if (!grouped[date]) grouped[date] = {};
+        const dirKey = fromTo || '';
+        if (!grouped[date][dirKey]) grouped[date][dirKey] = {};
+        if (!grouped[date][dirKey][timeRange]) grouped[date][dirKey][timeRange] = { counts: {} };
+        if (!grouped[date][dirKey][timeRange].counts[type]) grouped[date][dirKey][timeRange].counts[type] = 0;
+        grouped[date][dirKey][timeRange].counts[type]++;
       });
 
-      const csv = [headers.join(',')]
-        .concat(rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')))
-        .join('\n');
+      const dates = Object.keys(grouped).sort();
+
+      // Generate all possible 15-minute time slots for a day
+      const allTimeSlots = [];
+      for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 15) {
+          const nextM = (m + 15) % 60;
+          const nextH = m + 15 >= 60 ? h + 1 : h;
+          const slot = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} - ${String(nextH % 24).padStart(2, '0')}:${String(nextM).padStart(2, '0')}`;
+          allTimeSlots.push(slot);
+        }
+      }
+
+      // Build CSV rows
+      const csvRows = [];
+
+      // Add header row
+      csvRows.push(['Data', 'Hora', 'Direção', ...vehicleTypes]);
+
+      // Add data rows: for each date, for each direction (fromTo), for each time slot
+      dates.forEach((date) => {
+        const directions = Object.keys(grouped[date]).sort();
+        // ensure at least one direction (could be [''] if only empty)
+        directions.forEach((dir) => {
+          allTimeSlots.forEach((timeRange) => {
+            const row = [date, timeRange, dir];
+            vehicleTypes.forEach((type) => {
+              const count = (grouped[date] && grouped[date][dir] && grouped[date][dir][timeRange] && grouped[date][dir][timeRange].counts[type])
+                ? grouped[date][dir][timeRange].counts[type]
+                : 0;
+              row.push(count);
+            });
+            csvRows.push(row);
+          });
+        });
+      });
+
+      // Convert to CSV string
+      const csv = csvRows.map(row =>
+        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
 
       // Prepend UTF-8 BOM so Excel on Windows recognizes accents/cedilla correctly
       const csvWithBOM = '\uFEFF' + csv;
@@ -70,7 +125,7 @@ function MainHeader(props) {
       const a = document.createElement('a');
       a.href = url;
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
-      a.download = `vehicle_list_${ts}.csv`;
+      a.download = `vehicle_count_${ts}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();

@@ -30,16 +30,16 @@ import c3D69Eixos from "@/assets/vehicles/3D6 9 Eixos Rodotrem.png";
 
 export function getVehicleData(type){
     const passeioImgList = [
-      { id: 'passeio', image: passeio, type:'passeio', description: "Passeio" },
-      { id: 'moto', image: moto, type:'passeio', description: "Moto" },
-      { id: 'reboque1', image: reboque1, type:'passeio', description: "Reboque Passeio 1 Eixo" },
-      { id: 'reboque2', image: reboque2, type:'passeio', description: "Reboque Passeio 2 Eixos" },
+      { id: 'passeio', image: passeio, type:'passeio', description: "Passeio", exportName: '2E' },
+      { id: 'moto', image: moto, type:'passeio', description: "Moto", exportName: 'Moto' },
+      { id: 'reboque1', image: reboque1, type:'passeio', description: "Reboque Passeio 1 Eixo", exportName: '3E' },
+      { id: 'reboque2', image: reboque2, type:'passeio', description: "Reboque Passeio 2 Eixos", exportName: '4E' },
     ];
     
     const onibusImgList = [
-      { id: 'onibus2', image: onibus2, type:'onibus', description: "2C 2 Eixos" },
-      { id: 'onibus3', image: onibus3, type:'onibus', description: "3C 3 Eixos" },
-      { id: 'onibus4', image: onibus4, type:'onibus', description: "4C 4 Eixos" },
+      { id: 'onibus2', image: onibus2, type:'onibus', description: "2C 2 Eixos", exportName: '2CB' },
+      { id: 'onibus3', image: onibus3, type:'onibus', description: "3C 3 Eixos", exportName: '3CB' },
+      { id: 'onibus4', image: onibus4, type:'onibus', description: "4C 4 Eixos", exportName: '4CB' },
     ]
     
     const caminhaoImgList = [
