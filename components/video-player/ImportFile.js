@@ -49,13 +49,38 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
     }
   }, [registerNext, handleNext]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     setCurrentIndex((prev) => {
       const nextIndex = prev - 1 >= 0 ? prev - 1 : prev;
-      onVehicleSelect(registros[nextIndex]);
+      if (registros && registros[nextIndex] && typeof onVehicleSelect === 'function') {
+        onVehicleSelect(registros[nextIndex]);
+      }
       return nextIndex;
     });
-  };
+  }, [registros, onVehicleSelect]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (currentIndex > 0) {
+          handlePrev();
+        }
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        if (registros && currentIndex < registros.length - 1) {
+          handleNext();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentIndex, handleNext, handlePrev, registros]);
 
   const registroAtual = registros[currentIndex];
   const imagemUrl = registroAtual ? imagens[registroAtual.image_path] : null;
