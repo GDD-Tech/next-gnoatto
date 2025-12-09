@@ -173,7 +173,7 @@ function MainHeader(props) {
     setLoading(true);
     try {
       const result = await readFile(file);
-      props.onLoadRecords(result);
+      props.onLoadRecords(result, file.name);
     } catch (error) {
       console.error('Erro ao carregar arquivo:', error);
       alert('Erro ao carregar arquivo');

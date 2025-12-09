@@ -123,6 +123,10 @@ export default function ImageLoader(props) {
   }
 
   const handleAddNewVehicle = () =>{
+    if (!leftDirection || !rightDirection) {
+      handleToastMessage("Direções não podem estar vazias!", "warning");
+      return;
+    }
     setNewVehicleModalOpen(true);
   }
 
