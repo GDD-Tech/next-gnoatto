@@ -9,8 +9,11 @@ export default function Main() {
     const [imagens, setImagens] = useState({});
     const [resetRequest, setResetRequest] = useState(false);
     const [currentFileName, setCurrentFileName] = useState(() => {
-        // Load filename from localStorage on mount
-        return localStorage.getItem('currentFileName') || null;
+        // Load filename from localStorage on mount (only on client-side)
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('currentFileName') || null;
+        }
+        return null;
     });
     const [pendingFileData, setPendingFileData] = useState(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
