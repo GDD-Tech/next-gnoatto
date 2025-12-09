@@ -32,7 +32,7 @@ export default function Toaster({ message, type = "info", onReset }) {
   }
 
   return (
-    <Stack sx={{ width: "100%", position: "fixed", top: 20, left: 0, zIndex: 2, alignItems: "center", }} spacing={2}>
+    <Stack sx={{ width: "100%", position: "fixed", top: 20, left: 0, zIndex: 9999, alignItems: "center", }} spacing={2}>
       <Collapse in={open}>
         <Alert severity={type} onClose={handleClose}>
           {message}
