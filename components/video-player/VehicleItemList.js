@@ -21,15 +21,15 @@ export default function VehicleItemList({ vehicleList, label, onVehicleClick, on
 
       <div className={classes.gnoVehicleList}>
         {vehicleList.map((img, index) => (
-          <Box key={index} sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: 220}}>
+          <Box key={index} sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: 200}}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-              <Button sx={{ minWidth: 50, p: 1}} variant="contained" color="error" onClick={() => handleDirectionClick('right', img,)} ><ArrowForward /></Button>
+              <Button sx={{ minWidth: 30, p: 1}} variant="contained" color="error" onClick={() => handleDirectionClick('right', img,)} ><ArrowForward /></Button>
               <div style={{ cursor: label === 'Caminhão' ? 'pointer' : 'default' }} onClick={() => handleVehicleClick('none', img)}>
                 <Image src={img.image} alt={img.description} width={90} />
               </div>
-              <Button sx={{ minWidth: 50, p: 1}} variant="contained" color="success" onClick={() => handleDirectionClick('left', img,)} ><ArrowBack /></Button>
+              <Button sx={{ minWidth: 30, p: 1}} variant="contained" color="success" onClick={() => handleDirectionClick('left', img,)} ><ArrowBack /></Button>
             </Box>
-            <Typography color="error">{img.description}</Typography>
+            <Typography color="error" fontSize={14}>{img.description}</Typography>
           </Box>
         ))}
       </div>
