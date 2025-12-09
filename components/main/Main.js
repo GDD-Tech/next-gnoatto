@@ -49,6 +49,8 @@ export default function Main() {
         // Clear existing records and filename
         localStorage.removeItem('vehicleList');
         localStorage.removeItem('currentFileName');
+        // Trigger reset request
+        setResetRequest(true);
         // Load new file
         if (pendingFileData) {
             applyFileData(pendingFileData.result, pendingFileData.filename);
@@ -75,10 +77,16 @@ export default function Main() {
                         Você está carregando um arquivo diferente. Deseja deletar os registros atuais?
                     </Typography>
                     <Typography sx={{ mt: 2, fontWeight: 'bold' }}>
-                        Arquivo anterior: {currentFileName}
+                        Arquivo anterior:
                     </Typography>
-                    <Typography sx={{ fontWeight: 'bold' }}>
-                        Novo arquivo: {pendingFileData?.filename}
+                    <Typography sx={{ fontWeight: 'normal' }}>
+                        {currentFileName}
+                    </Typography>
+                    <Typography sx={{ mt: 2, fontWeight: 'bold' }}>
+                        Novo arquivo:
+                    </Typography>
+                    <Typography sx={{ fontWeight: 'normal' }}>
+                        {pendingFileData?.filename}
                     </Typography>
                 </DialogContent>
                 <DialogActions>
