@@ -124,7 +124,7 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll, ope
   return (
     <>
         {/* Summary table: type -> count and delete-all action */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' ,width: '100vw'}}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100vw'}}>
             <Box sx={{ m: 3, width: '100%'}}>
                 <TableContainer component={Paper}>
                     <Table size="small">

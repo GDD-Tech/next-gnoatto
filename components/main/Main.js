@@ -17,6 +17,7 @@ export default function Main() {
     });
     const [pendingFileData, setPendingFileData] = useState(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [clearVehiclesFlag, setClearVehiclesFlag] = useState(0);
 
     function loadZipData(result, filename) {
         // Check if there's a different file being loaded and records exist
@@ -49,8 +50,8 @@ export default function Main() {
         // Clear existing records and filename
         localStorage.removeItem('vehicleList');
         localStorage.removeItem('currentFileName');
-        // Trigger reset request
-        setResetRequest(true);
+        // Notify ImageLoader to reload data from localStorage
+        setClearVehiclesFlag(prev => prev + 1);
         // Load new file
         if (pendingFileData) {
             applyFileData(pendingFileData.result, pendingFileData.filename);
@@ -67,7 +68,7 @@ export default function Main() {
     return (
         <>
             <MainHeader onLoadRecords={loadZipData} onResetRequest={() => setResetRequest(true)} />
-            <ImageLoader loadedRecords={registros} loadedImages={imagens} resetRequest={resetRequest} onResetHandled={() => setResetRequest(false)} />
+            <ImageLoader loadedRecords={registros} loadedImages={imagens} resetRequest={resetRequest} onResetHandled={() => setResetRequest(false)} clearVehiclesFlag={clearVehiclesFlag} />
             
             {/* Confirmation Dialog for Different File */}
             <Dialog open={showConfirmDialog} onClose={handleCancelLoad}>

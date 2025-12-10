@@ -36,6 +36,18 @@ export default function ImageLoader(props) {
     }
   }, []);
 
+  // Reload storedVehicles when clearVehiclesFlag changes
+  useEffect(() => {
+    if (props.clearVehiclesFlag > 0) {
+      const stored = localStorage.getItem('vehicleList');
+      if (!stored) {
+        setStoredVehicles([]);
+      } else {
+        setStoredVehicles(JSON.parse(stored));
+      }
+    }
+  }, [props.clearVehiclesFlag]);
+
   const handleDirection = (label, direction, vehicle, axles, isNew) => {
     const object = {
       id : uuidv4(),
