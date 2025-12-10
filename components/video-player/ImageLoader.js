@@ -42,6 +42,9 @@ export default function ImageLoader(props) {
       const stored = localStorage.getItem('vehicleList');
       if (!stored) {
         setStoredVehicles([]);
+        setLeftDirection('');
+        setRightDirection('');
+        setStoredVehicles([]);
       } else {
         setStoredVehicles(JSON.parse(stored));
       }
