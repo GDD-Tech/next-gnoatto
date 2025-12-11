@@ -15,6 +15,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import Image from 'next/image';
 import logo from '@/assets/logo.webp'
 import { readFile } from "../../utils/fileReader";
@@ -27,10 +29,19 @@ function MainHeader(props) {
   const { window } = props;
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [exportMenuAnchor, setExportMenuAnchor] = React.useState(null);
   const fileInputRef = React.useRef(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
+  };
+
+  const handleExportMenuOpen = (event) => {
+    setExportMenuAnchor(event.currentTarget);
+  };
+
+  const handleExportMenuClose = () => {
+    setExportMenuAnchor(null);
   };
 
   const exportStoredVehicles = () => {
@@ -52,7 +63,7 @@ function MainHeader(props) {
         }
 
         // Define vehicle types in the exact order you want
-        const vehicleTypes = ['2E', '3E', '4E', '2CB', '3CB', '4CB', '2C', '3C', '4C', '2S2', '2S3', '2I3', '2J3', '3S2', '3S3', '4S3', '3I3', '3J3', '3T4', '3T6', '2C2', '2C3', '3C2', '3C3', '3D4', '3D6', 'Moto'];
+        const vehicleTypes = ['2E', '3E', '4E', '2CB', '3CB', '4CB', '2C (16)', '2C (22)', '3C', '4C', '2S2', '2S3', '2I3', '2J3', '3S2', '3S3', '4S3', '3I3', '3J3', '3T4', '3T6', '2C2', '2C3', '3C2', '3C3', '3D4', '3D6', 'Moto'];
 
         // Group by date -> fromTo (De Para) -> 15-minute time slots
         const grouped = {};
@@ -146,13 +157,14 @@ function MainHeader(props) {
     }, 100);
   };
 
-  const handleNavClick = (item) => {
+  const handleNavClick = (item, event) => {
     // Close mobile drawer if open
     if (mobileOpen) setMobileOpen(false);
 
     switch (item) {
       case 'Exportar Dados':
-        exportStoredVehicles();
+        // Open submenu instead of direct export
+        handleExportMenuOpen(event);
         break;
       case 'Resetar Contagem':
         handleReset();
@@ -163,6 +175,19 @@ function MainHeader(props) {
       default:
         break;
     }
+  };
+
+  const handleExportVehicles = () => {
+    handleExportMenuClose();
+    if (mobileOpen) setMobileOpen(false);
+    exportStoredVehicles();
+  };
+
+  const handleExportAxles = () => {
+    handleExportMenuClose();
+    if (mobileOpen) setMobileOpen(false);
+    // To be implemented
+    alert('Exportar Eixos - Funcionalidade a ser implementada');
   };
 
   async function handleFileUpload(event){
@@ -189,18 +214,33 @@ function MainHeader(props) {
   }
 
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
+    <Box onClick={(e) => {
+      // Don't close drawer if clicking on "Exportar Dados"
+      if (e.target.textContent !== 'Exportar Dados') {
+        handleDrawerToggle();
+      }
+    }} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2 }}>
         <Image src={logo} width={70} alt='logo'/>
       </Typography>
       <Divider />
       <List>
         {navItems.map((item) => (
-          <ListItem key={item} disablePadding>
-            <ListItemButton sx={{ textAlign: 'center' }} onClick={() => handleNavClick(item)}>
-              <ListItemText primary={item} />
-            </ListItemButton>
-          </ListItem>
+          item === 'Exportar Dados' ? (
+            <React.Fragment key={item}>
+              <ListItem disablePadding>
+                <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleNavClick(item, e)}>
+                  <ListItemText primary={item} />
+                </ListItemButton>
+              </ListItem>
+            </React.Fragment>
+          ) : (
+            <ListItem key={item} disablePadding>
+              <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleNavClick(item, e)}>
+                <ListItemText primary={item} />
+              </ListItemButton>
+            </ListItem>
+          )
         ))}
       </List>
     </Box>
@@ -240,12 +280,21 @@ function MainHeader(props) {
                     <input ref={fileInputRef} type="file" accept=".zip" style={{ display: 'none' }} onChange={handleFileUpload} />
                   </React.Fragment>
                 ) : (
-                  <Button key={item} sx={{ color: '#fff' }} onClick={() => handleNavClick(item)}>
+                  <Button key={item} sx={{ color: '#fff' }} onClick={(e) => handleNavClick(item, e)}>
                     {item}
                   </Button>
                 )
               ))}
             </Box>
+            {/* Export submenu */}
+            <Menu
+              anchorEl={exportMenuAnchor}
+              open={Boolean(exportMenuAnchor)}
+              onClose={handleExportMenuClose}
+            >
+              <MenuItem onClick={handleExportVehicles}>Exportar Veículos</MenuItem>
+              <MenuItem onClick={handleExportAxles}>Exportar Eixos</MenuItem>
+            </Menu>
           </Toolbar>
         </AppBar>
         <nav>

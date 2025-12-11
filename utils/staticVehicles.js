@@ -30,40 +30,40 @@ import c3D69Eixos from "@/assets/vehicles/3D6 9 Eixos Rodotrem.png";
 
 export function getVehicleData(type){
     const passeioImgList = [
-      { id: 'passeio', image: passeio, type:'passeio', description: "Passeio", exportName: '2E' },
-      { id: 'moto', image: moto, type:'passeio', description: "Moto", exportName: 'Moto' },
-      { id: 'reboque1', image: reboque1, type:'passeio', description: "Reboque Passeio 1 Eixo", exportName: '3E' },
-      { id: 'reboque2', image: reboque2, type:'passeio', description: "Reboque Passeio 2 Eixos", exportName: '4E' },
+      { id: 'passeio', image: passeio, type:'passeio', description: "Passeio", exportName: '2E', eixos: 2 },
+      { id: 'moto', image: moto, type:'passeio', description: "Moto", exportName: 'Moto', eixos: 2 },
+      { id: 'reboque1', image: reboque1, type:'passeio', description: "Reboque Passeio 1 Eixo", exportName: '3E', eixos: 1 },
+      { id: 'reboque2', image: reboque2, type:'passeio', description: "Reboque Passeio 2 Eixos", exportName: '4E', eixos: 2 },
     ];
     
     const onibusImgList = [
-      { id: 'onibus2', image: onibus2, type:'onibus', description: "2C 2 Eixos", exportName: '2CB' },
-      { id: 'onibus3', image: onibus3, type:'onibus', description: "3C 3 Eixos", exportName: '3CB' },
-      { id: 'onibus4', image: onibus4, type:'onibus', description: "4C 4 Eixos", exportName: '4CB' },
+      { id: 'onibus2', image: onibus2, type:'onibus', description: "2C 2 Eixos", exportName: '2CB', eixos: 2 },
+      { id: 'onibus3', image: onibus3, type:'onibus', description: "3C 3 Eixos", exportName: '3CB', eixos: 3 },
+      { id: 'onibus4', image: onibus4, type:'onibus', description: "4C 4 Eixos", exportName: '4CB', eixos: 4 },
     ]
     
     const caminhaoImgList = [
-      { id: 'caminhao2', image: caminhao2, type:'caminhao', description: "2C (16)", exportName: '2C' },
-      { id: 'caminhao22', image: caminhao22, type:'caminhao', description: "2C (22)", exportName: '2C' },
-      { id: 'caminhao3', image: caminhao3, type:'caminhao', description: "3C", exportName: '3C' },
-      { id: 'caminhao4', image: caminhao4, type:'caminhao', description: "4C", exportName: '4C' },
-      { id: 'caminhao5', image: caminhao5, type:'caminhao', description: "2S2 4 Eixos", exportName: '2S2' },
-      { id: 'c2S35Eixos', image: c2S35Eixos, type:'caminhao', description: "2S3 5 Eixos", exportName: '2S3' },
-      { id: 'c2I35Eixos', image: c2I35Eixos, type:'caminhao', description: "2I3 5 Eixos", exportName: '2I3' },
-      { id: 'c2J35Eixos', image: c2J35Eixos, type:'caminhao', description: "2J3 5 Eixos", exportName: '2J3' },
-      { id: 'c3S25Eixos', image: c3S25Eixos, type:'caminhao', description: "3S2 5 Eixos", exportName: '3S2' },
-      { id: 'c3S36Eixos', image: c3S36Eixos, type:'caminhao', description: "3S3 6 Eixos", exportName: '3S3' },
-      { id: 'c4S37Eixos', image: c4S37Eixos, type:'caminhao', description: "4S3 7 Eixos", exportName: '4S3' },
-      { id: 'c3I36Eixos', image: c3I36Eixos, type:'caminhao', description: "3I3 6 Eixos", exportName: '3I3' },
-      { id: 'c3J36Eixos', image: c3J36Eixos, type:'caminhao', description: "3J3 6 Eixos", exportName: '3J3' },
-      { id: 'c3T47Eixos', image: c3T47Eixos, type:'caminhao', description: "3T4 7 Eixos Bitrem", exportName: '3T4' },
-      { id: 'c3T69Eixos', image: c3T69Eixos, type:'caminhao', description: "3T6 9 Eixos Rodotrem Tritrem", exportName: '3T6' },
-      { id: 'c2C24Eixos', image: c2C24Eixos, type:'caminhao', description: "2C2 4 Eixos", exportName: '2C2' },
-      { id: 'c2C35Eixos', image: c2C35Eixos, type:'caminhao', description: "2C3 5 Eixos", exportName: '2C3' },
-      { id: 'c3C25Eixos', image: c3C25Eixos, type:'caminhao', description: "3C2 5 Eixos", exportName: '3C2' },
-      { id: 'c3C36Eixos', image: c3C36Eixos, type:'caminhao', description: "3C3 6 Eixos", exportName: '3C3' },
-      { id: 'c3D47Eixos', image: c3D47Eixos, type:'caminhao', description: "3D4 7 Eixos", exportName: '3D4' },
-      { id: 'c3D69Eixos', image: c3D69Eixos, type:'caminhao', description: "3D6 9 Eixos Rodotrem", exportName: '3D6' },
+      { id: 'caminhao2', image: caminhao2, type:'caminhao', description: "2C (16)", exportName: '2C (16)', eixos: 2 },
+      { id: 'caminhao22', image: caminhao22, type:'caminhao', description: "2C (22)", exportName: '2C (22)', eixos: 2 },
+      { id: 'caminhao3', image: caminhao3, type:'caminhao', description: "3C", exportName: '3C', eixos: 3 },
+      { id: 'caminhao4', image: caminhao4, type:'caminhao', description: "4C", exportName: '4C', eixos: 4 },
+      { id: 'caminhao5', image: caminhao5, type:'caminhao', description: "2S2 4 Eixos", exportName: '2S2', eixos: 4 },
+      { id: 'c2S35Eixos', image: c2S35Eixos, type:'caminhao', description: "2S3 5 Eixos", exportName: '2S3', eixos: 5 },
+      { id: 'c2I35Eixos', image: c2I35Eixos, type:'caminhao', description: "2I3 5 Eixos", exportName: '2I3', eixos: 5 },
+      { id: 'c2J35Eixos', image: c2J35Eixos, type:'caminhao', description: "2J3 5 Eixos", exportName: '2J3', eixos: 5 },
+      { id: 'c3S25Eixos', image: c3S25Eixos, type:'caminhao', description: "3S2 5 Eixos", exportName: '3S2', eixos: 5 },
+      { id: 'c3S36Eixos', image: c3S36Eixos, type:'caminhao', description: "3S3 6 Eixos", exportName: '3S3', eixos: 6 },
+      { id: 'c4S37Eixos', image: c4S37Eixos, type:'caminhao', description: "4S3 7 Eixos", exportName: '4S3', eixos: 7 },
+      { id: 'c3I36Eixos', image: c3I36Eixos, type:'caminhao', description: "3I3 6 Eixos", exportName: '3I3', eixos: 6 },
+      { id: 'c3J36Eixos', image: c3J36Eixos, type:'caminhao', description: "3J3 6 Eixos", exportName: '3J3', eixos: 6 },
+      { id: 'c3T47Eixos', image: c3T47Eixos, type:'caminhao', description: "3T4 7 Eixos Bitrem", exportName: '3T4', eixos: 7 },
+      { id: 'c3T69Eixos', image: c3T69Eixos, type:'caminhao', description: "3T6 9 Eixos Rodotrem Tritrem", exportName: '3T6', eixos: 9 },
+      { id: 'c2C24Eixos', image: c2C24Eixos, type:'caminhao', description: "2C2 4 Eixos", exportName: '2C2', eixos: 4 },
+      { id: 'c2C35Eixos', image: c2C35Eixos, type:'caminhao', description: "2C3 5 Eixos", exportName: '2C3', eixos: 5 },
+      { id: 'c3C25Eixos', image: c3C25Eixos, type:'caminhao', description: "3C2 5 Eixos", exportName: '3C2', eixos: 5 },
+      { id: 'c3C36Eixos', image: c3C36Eixos, type:'caminhao', description: "3C3 6 Eixos", exportName: '3C3', eixos: 6 },
+      { id: 'c3D47Eixos', image: c3D47Eixos, type:'caminhao', description: "3D4 7 Eixos", exportName: '3D4', eixos: 7 },
+      { id: 'c3D69Eixos', image: c3D69Eixos, type:'caminhao', description: "3D6 9 Eixos Rodotrem", exportName: '3D6', eixos: 9 },
     ]
 
     switch (type) {
