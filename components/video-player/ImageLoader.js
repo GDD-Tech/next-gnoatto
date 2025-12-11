@@ -59,7 +59,7 @@ export default function ImageLoader(props) {
       date : selectedVehicle?.date,
       direction : direction === 'left' ? leftDirection : rightDirection,
       fromTo : direction === 'left' ? (rightDirection + " - " + leftDirection) : (leftDirection + " - " + rightDirection),
-      type : vehicle?.exportName ?? vehicleDetails?.description,
+      type : vehicle?.exportName ?? vehicleDetails?.exportName,
       category : label ?? vehicleLabel,
       raisedAxles : axles
     }
