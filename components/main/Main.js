@@ -18,6 +18,7 @@ export default function Main() {
     const [pendingFileData, setPendingFileData] = useState(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [clearVehiclesFlag, setClearVehiclesFlag] = useState(0);
+    const [importConflictType, setImportConflictType] = useState(null); // 'different_file' | 'same_file'
 
     function loadZipData(result, filename) {
         // Check if there's a different file being loaded and records exist
@@ -26,10 +27,23 @@ export default function Main() {
         const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
         
         // Compare with localStorage value instead of state (handles page reload case)
-        if (storedFileName && filename !== storedFileName && hasRecords) {
-            // Store pending data and show confirmation dialog
-            setPendingFileData({ result, filename });
-            setShowConfirmDialog(true);
+        if (hasRecords) {
+            if (storedFileName && filename !== storedFileName) {
+                // Different file, existing records -> Warn to delete
+                setPendingFileData({ result, filename });
+                setImportConflictType('different_file');
+                setShowConfirmDialog(true);
+            } else if (filename === storedFileName) {
+               // Same file, existing records -> Ask to keep or delete
+               setPendingFileData({ result, filename });
+               setImportConflictType('same_file');
+               setShowConfirmDialog(true);
+            } else {
+                 // Should ideally not happen if hasRecords is true but no storedFileName, consider as different
+                 setPendingFileData({ result, filename });
+                 setImportConflictType('different_file');
+                 setShowConfirmDialog(true);
+            }
         } else {
             // Load directly
             applyFileData(result, filename);
@@ -46,7 +60,7 @@ export default function Main() {
         localStorage.setItem('currentFileName', filename);
     }
 
-    function handleConfirmLoad() {
+    function handleConfirmDeleteAndLoad() {
         // Clear existing records and filename
         localStorage.removeItem('vehicleList');
         localStorage.removeItem('currentFileName');
@@ -58,11 +72,22 @@ export default function Main() {
         }
         setShowConfirmDialog(false);
         setPendingFileData(null);
+        setImportConflictType(null);
+    }
+
+    function handleKeepDataAndLoad() {
+        if (pendingFileData) {
+            applyFileData(pendingFileData.result, pendingFileData.filename);
+        }
+        setShowConfirmDialog(false);
+        setPendingFileData(null);
+        setImportConflictType(null);
     }
 
     function handleCancelLoad() {
         setShowConfirmDialog(false);
         setPendingFileData(null);
+        setImportConflictType(null);
     }
 
     return (
@@ -70,32 +95,53 @@ export default function Main() {
             <MainHeader onLoadRecords={loadZipData} onResetRequest={() => setResetRequest(true)} />
             <ImageLoader loadedRecords={registros} loadedImages={imagens} resetRequest={resetRequest} onResetHandled={() => setResetRequest(false)} clearVehiclesFlag={clearVehiclesFlag} />
             
-            {/* Confirmation Dialog for Different File */}
+            {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onClose={handleCancelLoad}>
-                <DialogTitle>Arquivo Diferente Detectado</DialogTitle>
+                <DialogTitle>
+                    {importConflictType === 'same_file' ? 'Arquivo Existente Detectado' : 'Arquivo Diferente Detectado'}
+                </DialogTitle>
                 <DialogContent>
-                    <Typography>
-                        Você está carregando um arquivo diferente. Deseja deletar os registros atuais?
-                    </Typography>
-                    <Typography sx={{ mt: 2, fontWeight: 'bold' }}>
-                        Arquivo anterior:
-                    </Typography>
-                    <Typography sx={{ fontWeight: 'normal' }}>
-                        {currentFileName}
-                    </Typography>
-                    <Typography sx={{ mt: 2, fontWeight: 'bold' }}>
-                        Novo arquivo:
-                    </Typography>
-                    <Typography sx={{ fontWeight: 'normal' }}>
-                        {pendingFileData?.filename}
-                    </Typography>
+                    {importConflictType === 'different_file' && (
+                        <>
+                            <Typography>
+                                Você está carregando um arquivo diferente. Deseja deletar os registros atuais?
+                            </Typography>
+                            <Typography sx={{ mt: 2, fontWeight: 'bold' }}>
+                                Arquivo anterior:
+                            </Typography>
+                            <Typography sx={{ fontWeight: 'normal' }}>
+                                {currentFileName || 'Desconhecido'}
+                            </Typography>
+                            <Typography sx={{ mt: 2, fontWeight: 'bold' }}>
+                                Novo arquivo:
+                            </Typography>
+                            <Typography sx={{ fontWeight: 'normal' }}>
+                                {pendingFileData?.filename}
+                            </Typography>
+                        </>
+                    )}
+                    {importConflictType === 'same_file' && (
+                        <>
+                            <Typography>
+                                Este arquivo é o mesmo que o carregado anteriormente e existem dados salvos no sistema.
+                            </Typography>
+                            <Typography sx={{ mt: 2 }}>
+                                Deseja manter os dados salvos ou apagá-los e iniciar uma nova contagem?
+                            </Typography>
+                        </>
+                    )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancelLoad} color="error">
+                    <Button onClick={handleCancelLoad} color="inherit">
                         Cancelar
                     </Button>
-                    <Button onClick={handleConfirmLoad} variant="contained" color="primary">
-                        Confirmar e Deletar Registros
+                    {importConflictType === 'same_file' && (
+                        <Button onClick={handleKeepDataAndLoad} variant="outlined" color="primary">
+                            Manter Dados Salvos
+                        </Button>
+                    )}
+                    <Button onClick={handleConfirmDeleteAndLoad} variant="contained" color="error">
+                        {importConflictType === 'same_file' ? 'Apagar e Iniciar de Novo' : 'Confirmar e Deletar Registros'}
                     </Button>
                 </DialogActions>
             </Dialog>
