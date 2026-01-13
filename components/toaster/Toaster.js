@@ -8,12 +8,10 @@ export default function Toaster({ message, type = "info", onReset }) {
   useEffect(() => {
     if (message) {
       setOpen(false);
-      // Abre o toast levemente atrasado para garantir animação suave
       const openTimer = setTimeout(() => setOpen(true), 100);
 
       let closeTimer;
       if (type === "success") {
-        // Fecha automaticamente após 2s e limpa a mensagem
         closeTimer = setTimeout(() => {
           setOpen(false);
           onReset?.();
