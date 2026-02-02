@@ -2,9 +2,12 @@
 import { useState } from "react";
 import MainHeader from "@/components/main-header/MainHeader";
 import ImageLoader from "@/components/video-player/ImageLoader";
+import Mp4Player from "@/components/video-player/Mp4Player";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 
 export default function Main() {
+    const [mode, setMode] = useState('zip'); // 'zip' or 'mp4'
+    const [videoFile, setVideoFile] = useState(null);
     const [registros, setRegistros] = useState([]);
     const [imagens, setImagens] = useState({});
     const [resetRequest, setResetRequest] = useState(false);
@@ -58,6 +61,12 @@ export default function Main() {
         setCurrentFileName(filename);
         // Save filename to localStorage
         localStorage.setItem('currentFileName', filename);
+        setMode('zip');
+    }
+
+    function loadMp4Data(file) {
+        setMode('mp4');
+        setVideoFile(file);
     }
 
     function handleConfirmDeleteAndLoad() {
@@ -92,8 +101,27 @@ export default function Main() {
 
     return (
         <>
-            <MainHeader onLoadRecords={loadZipData} onResetRequest={() => setResetRequest(true)} />
-            <ImageLoader loadedRecords={registros} loadedImages={imagens} resetRequest={resetRequest} onResetHandled={() => setResetRequest(false)} clearVehiclesFlag={clearVehiclesFlag} />
+            <MainHeader 
+                onLoadRecords={loadZipData} 
+                onLoadMp4={loadMp4Data}
+                onResetRequest={() => setResetRequest(true)} 
+            />
+            {mode === 'zip' ? (
+                <ImageLoader 
+                    loadedRecords={registros} 
+                    loadedImages={imagens} 
+                    resetRequest={resetRequest} 
+                    onResetHandled={() => setResetRequest(false)} 
+                    clearVehiclesFlag={clearVehiclesFlag} 
+                />
+            ) : (
+                <Mp4Player 
+                    videoFile={videoFile}
+                    resetRequest={resetRequest} 
+                    onResetHandled={() => setResetRequest(false)} 
+                    clearVehiclesFlag={clearVehiclesFlag}
+                />
+            )}
             
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onClose={handleCancelLoad}>

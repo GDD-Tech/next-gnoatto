@@ -30,7 +30,9 @@ function MainHeader(props) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [exportMenuAnchor, setExportMenuAnchor] = React.useState(null);
-  const fileInputRef = React.useRef(null);
+  const [importMenuAnchor, setImportMenuAnchor] = React.useState(null);
+  const zipInputRef = React.useRef(null);
+  const mp4InputRef = React.useRef(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
@@ -42,6 +44,14 @@ function MainHeader(props) {
 
   const handleExportMenuClose = () => {
     setExportMenuAnchor(null);
+  };
+
+  const handleImportMenuOpen = (event) => {
+    setImportMenuAnchor(event.currentTarget);
+  };
+
+  const handleImportMenuClose = () => {
+    setImportMenuAnchor(null);
   };
 
   const exportStoredVehicles = () => {
@@ -170,7 +180,8 @@ function MainHeader(props) {
         handleReset();
         break;
       case 'Importar Arquivo':
-        handleFileUpload();
+        // Open submenu instead of direct upload
+        handleImportMenuOpen(event);
         break;
       default:
         break;
@@ -353,8 +364,33 @@ function MainHeader(props) {
       alert('Erro ao carregar arquivo');
     } finally {
       setLoading(false);
+      event.target.value = '';
     }
   }
+
+  function handleMp4Upload(event){
+    const file = event.target.files[0];
+    if(!file){
+      return;
+    }
+    if (typeof props.onLoadMp4 === 'function') {
+      props.onLoadMp4(file);
+    }
+    // Clear the input so the same file can be selected again
+    event.target.value = '';
+  }
+
+  const handleImportZip = () => {
+    handleImportMenuClose();
+    if (mobileOpen) setMobileOpen(false);
+    zipInputRef.current?.click();
+  };
+
+  const handleImportMp4 = () => {
+    handleImportMenuClose();
+    if (mobileOpen) setMobileOpen(false);
+    mp4InputRef.current?.click();
+  };
 
   function handleReset(){
     if (typeof props.onResetRequest === 'function') {
@@ -364,8 +400,9 @@ function MainHeader(props) {
 
   const drawer = (
     <Box onClick={(e) => {
-      // Don't close drawer if clicking on "Exportar Dados"
-      if (e.target.textContent !== 'Exportar Dados') {
+      // Don't close drawer if clicking on submenu items
+      const submenuItems = ['Exportar Dados', 'Importar Arquivo'];
+      if (!submenuItems.includes(e.target.textContent)) {
         handleDrawerToggle();
       }
     }} sx={{ textAlign: 'center' }}>
@@ -423,10 +460,9 @@ function MainHeader(props) {
               {navItems.map((item) => (
                 item === 'Importar Arquivo' ? (
                   <React.Fragment key={item}>
-                    <Button sx={{ color: '#fff' }} onClick={() => fileInputRef.current?.click()}>
+                    <Button sx={{ color: '#fff' }} onClick={(e) => handleNavClick(item, e)}>
                       {item}
                     </Button>
-                    <input ref={fileInputRef} type="file" accept=".zip" style={{ display: 'none' }} onChange={handleFileUpload} />
                   </React.Fragment>
                 ) : (
                   <Button key={item} sx={{ color: '#fff' }} onClick={(e) => handleNavClick(item, e)}>
@@ -444,6 +480,18 @@ function MainHeader(props) {
               <MenuItem onClick={handleExportVehicles}>Exportar Veículos</MenuItem>
               <MenuItem onClick={handleExportAxles}>Exportar Eixos</MenuItem>
             </Menu>
+            {/* Import submenu */}
+            <Menu
+              anchorEl={importMenuAnchor}
+              open={Boolean(importMenuAnchor)}
+              onClose={handleImportMenuClose}
+            >
+              <MenuItem onClick={handleImportZip}>Importar ZIP</MenuItem>
+              <MenuItem onClick={handleImportMp4}>Importar MP4</MenuItem>
+            </Menu>
+            {/* Hidden file inputs */}
+            <input ref={zipInputRef} type="file" accept=".zip" style={{ display: 'none' }} onChange={handleFileUpload} />
+            <input ref={mp4InputRef} type="file" accept=".mp4,video/mp4" style={{ display: 'none' }} onChange={handleMp4Upload} />
           </Toolbar>
         </AppBar>
         <nav>

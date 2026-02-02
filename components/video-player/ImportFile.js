@@ -7,8 +7,8 @@ import { ArrowBack, ArrowForward } from "@mui/icons-material";
 export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const prevCountRef = useRef(registros ? registros.length : 0);
-  const prevFirstRef = useRef(registros && registros[0] ? registros[0].image_path : null);
+  const prevCountRef = useRef(0);
+  const prevFirstRef = useRef(null);
 
   useEffect(() => {
     const prevCount = prevCountRef.current || 0;
