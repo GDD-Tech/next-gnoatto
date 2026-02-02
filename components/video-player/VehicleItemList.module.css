@@ -1,8 +1,27 @@
 .gnoVehicleList {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 32px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px 32px;
+    width: 100%;
+}
+
+/* Ajustes responsivos - mantém 4 colunas mas reduz espaçamentos */
+@media (max-width: 1024px) {
+    .gnoVehicleList {
+        gap: 16px 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .gnoVehicleList {
+        gap: 12px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .gnoVehicleList {
+        gap: 8px 12px;
+    }
 }
 
 .gnoVehicle {

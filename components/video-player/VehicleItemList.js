@@ -21,15 +21,62 @@ export default function VehicleItemList({ vehicleList, label, onVehicleClick, on
 
       <div className={classes.gnoVehicleList}>
         {vehicleList.map((img, index) => (
-          <Box key={index} sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: 200}}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-              <Button sx={{ minWidth: 30, p: 1}} variant="contained" color="error" onClick={() => handleDirectionClick('right', img,)} ><ArrowForward /></Button>
-              <div style={{ cursor: label === 'Caminhão' ? 'pointer' : 'default' }} onClick={() => handleVehicleClick('none', img)}>
-                <Image src={img.image} alt={img.description} width={90} />
+          <Box key={index} sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', minWidth: 0}}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: { xs: '2px', sm: '4px', md: '8px' } }}>
+              <Button 
+                sx={{ 
+                  minWidth: { xs: 16, sm: 20, md: 24, lg: 30 }, 
+                  maxWidth: { xs: 24, sm: 28, md: 32, lg: 40 },
+                  p: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1 },
+                  '& .MuiSvgIcon-root': { fontSize: { xs: '0.75rem', sm: '1rem', md: '1.25rem', lg: '1.5rem' } }
+                }} 
+                variant="contained" 
+                color="error" 
+                onClick={() => handleDirectionClick('right', img,)} 
+              >
+                <ArrowForward />
+              </Button>
+              <div 
+                style={{ 
+                  cursor: label === 'Caminhão' ? 'pointer' : 'default',
+                  flex: '1',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  minWidth: 0
+                }} 
+                onClick={() => handleVehicleClick('none', img)}
+              >
+                <Image 
+                  src={img.image} 
+                  alt={img.description} 
+                  width={90} 
+                  style={{ width: '100%', height: 'auto', maxWidth: '90px' }}
+                />
               </div>
-              <Button sx={{ minWidth: 30, p: 1}} variant="contained" color="success" onClick={() => handleDirectionClick('left', img,)} ><ArrowBack /></Button>
+              <Button 
+                sx={{ 
+                  minWidth: { xs: 16, sm: 20, md: 24, lg: 30 }, 
+                  maxWidth: { xs: 24, sm: 28, md: 32, lg: 40 },
+                  p: { xs: 0.25, sm: 0.5, md: 0.75, lg: 1 },
+                  '& .MuiSvgIcon-root': { fontSize: { xs: '0.75rem', sm: '1rem', md: '1.25rem', lg: '1.5rem' } }
+                }} 
+                variant="contained" 
+                color="success" 
+                onClick={() => handleDirectionClick('left', img,)} 
+              >
+                <ArrowBack />
+              </Button>
             </Box>
-            <Typography color="error" fontSize={14}>{img.description}</Typography>
+            <Typography 
+              color="error" 
+              sx={{ 
+                fontSize: { xs: 10, sm: 12, md: 14 },
+                textAlign: 'center',
+                wordBreak: 'break-word'
+              }}
+            >
+              {img.description}
+            </Typography>
           </Box>
         ))}
       </div>

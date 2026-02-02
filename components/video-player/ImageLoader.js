@@ -150,7 +150,7 @@ export default function ImageLoader(props) {
   return (
     <>
       <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center'}}>
-        <Box sx={{p: 2, width:'100%', maxWidth: '50vw'}}>
+        <Box sx={{p: 1, width:'100%', maxWidth: '40vw'}}>
           {selectedVehicle && (
             <Box sx={{display: 'flex', flexDirection: 'column'}}>
               <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Direção</Typography>
@@ -164,7 +164,7 @@ export default function ImageLoader(props) {
           <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} />
         </Box>
         {selectedVehicle && (
-          <Box sx={{p: 2, maxWidth: '50vw'}}>
+          <Box sx={{p: 1, maxWidth: '60vw'}}>
             <Box sx={{ pt: 3}}>
               <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Painel de Veiculos</Typography>
               <div className='gno-flex-column'>
