@@ -407,7 +407,7 @@ function MainHeader(props) {
       }
     }} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2 }}>
-        <Image src={logo} width={70} alt='logo'/>
+        <Image src={logo} width={55} alt='logo'/>
       </Typography>
       <Divider />
       <List>
@@ -454,7 +454,7 @@ function MainHeader(props) {
               component="div"
               sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
             >
-              <Image src={logo} width={70} alt='logo'/>
+              <Image src={logo} width={55} alt='logo'/>
             </Typography>
             <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
               {navItems.map((item) => (
