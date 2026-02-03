@@ -320,6 +320,8 @@ export default function Mp4Player(props) {
                 onChange={(newValue) => setStartDateTime(newValue)}
                 format="DD/MM/YYYY HH:mm:ss"
                 ampm={false}
+                views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
+                timeSteps={{ minutes: 1, seconds: 1 }}
                 slotProps={{
                   textField: {
                     size: "small",
@@ -346,18 +348,6 @@ export default function Mp4Player(props) {
                 <MenuItem value={6}>6x</MenuItem>
               </Select>
             </FormControl>
-
-            <TextField
-              label="Data/Hora Atual (Calculada)"
-              value={currentDateTime}
-              InputProps={{
-                readOnly: true,
-              }}
-              size="small"
-              fullWidth
-              color="secondary"
-              focused
-            />
           </Box>
         </Box>
 
