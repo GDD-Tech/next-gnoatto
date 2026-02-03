@@ -199,6 +199,11 @@ export default function Mp4Player(props) {
       return;
     }
 
+    if (!videoRef.current.paused) {
+      videoRef.current.pause();
+      setIsPaused(true);
+    }
+
     // Calculate and update current date/time
     const videoTimeSeconds = videoRef.current.currentTime;
     const calculatedDate = startDateTime.add(videoTimeSeconds, 'second');
@@ -348,18 +353,6 @@ export default function Mp4Player(props) {
                 <MenuItem value={6}>6x</MenuItem>
               </Select>
             </FormControl>
-
-            <TextField
-              label="Data/Hora Atual (Calculada)"
-              value={currentDateTime}
-              InputProps={{
-                readOnly: true,
-              }}
-              size="small"
-              sx={{ minWidth: 200, flex: 1 }}
-              color="secondary"
-              focused
-            />
           </Box>
         </Box>
 

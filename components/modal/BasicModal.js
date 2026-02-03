@@ -9,7 +9,7 @@ import Modal from '@mui/material/Modal';
 const style = {
   position: 'absolute',
   top: '50%',
-  left: '50%',
+  left: { xs: '50%', md: '75%' },
   transform: 'translate(-50%, -50%)',
   width: 400,
   bgcolor: 'background.paper',
@@ -44,7 +44,13 @@ export default function BasicModal({ isOpen, onClose, vehicle, left, right, dire
   }
 
   return (
-    <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description" >
+    <Modal 
+      open={open} 
+      onClose={handleClose} 
+      aria-labelledby="modal-modal-title" 
+      aria-describedby="modal-modal-description" 
+      slotProps={{ backdrop: { sx: { backgroundColor: 'rgba(0, 0, 0, 0.1)' } } }}
+    >
       <Box sx={style}>
         <Typography variant="h6" component="h6">
           Selecione a quantidade de eixos erguidos. {vehicle?.description}
