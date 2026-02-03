@@ -76,7 +76,7 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -92,7 +92,7 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
           {/* 📸 Exibe a imagem correspondente */}
           {imagemUrl && (
             <Box>
-              <img src={imagemUrl} alt={registroAtual.predicted_class} width='100%'/>
+              <img src={imagemUrl} alt={registroAtual.predicted_class} width='100%' />
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>Registro {currentIndex + 1} de {registros.length}</div>
                 <div>{registroAtual.image_path}</div>
@@ -104,7 +104,7 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
           <pre className="bg-gray-100 p-2 rounded text-sm">
             {JSON.stringify(registroAtual, null, 2)}
           </pre> */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1}}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1 }}>
             <div><strong>Id:</strong> {registroAtual.track_id}</div>
             <div><strong>Horario:</strong> {registroAtual.time}</div>
             <div><strong>Status:</strong> <span style={{ color: getStatus(registroAtual) === "Completo" ? "#22C55E" : "#EF4444" }}>{getStatus(registroAtual)}</span></div>
@@ -112,13 +112,22 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
 
           {/* ⏮️ ⏭️ Navegação */}
           <div className="gno-flex gno-justify-center gno-gap-16">
-            <Button variant="contained" sx={{backgroundColor: '#22423A'}} onClick={handlePrev} startIcon={<ArrowBack />} disabled={currentIndex === 0}>Anterior</Button>
-            <Button variant="contained" sx={{backgroundColor: '#22423A'}} onClick={handleNext} endIcon={<ArrowForward />} disabled={currentIndex === registros.length - 1}>Proximo</Button>
+            <Button variant="contained" sx={{ backgroundColor: '#22423A' }} onClick={handlePrev} startIcon={<ArrowBack />} disabled={currentIndex === 0}>Anterior</Button>
+            <Button variant="contained" sx={{ backgroundColor: '#22423A' }} onClick={handleNext} endIcon={<ArrowForward />} disabled={currentIndex === registros.length - 1}>Proximo</Button>
           </div>
         </>
       )}
       {!registroAtual && (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 800, minHeight: 500, border: '2px dashed #ccc', borderRadius: 2, backgroundColor: '#f9f9f9', }}>
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          minHeight: { xs: 300, sm: 400, md: 500 },
+          border: '2px dashed #ccc',
+          borderRadius: 2,
+          backgroundColor: '#f9f9f9',
+        }}>
           <Typography variant="h6" color="textSecondary">
             Selecione um arquivo para começar
           </Typography>

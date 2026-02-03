@@ -1,8 +1,9 @@
 .gnoVehicleList {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 24px 32px;
+    gap: 6px 16px;
     width: 100%;
+    align-items: center;
 }
 
 /* Ajustes responsivos - mantém 4 colunas mas reduz espaçamentos */

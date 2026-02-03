@@ -96,7 +96,7 @@ export default function Mp4Player(props) {
     // startDateTime is now a dayjs object
     const videoTimeSeconds = videoRef.current.currentTime;
     const currentDate = startDateTime.add(videoTimeSeconds, 'second');
-    
+
     return currentDate.format('DD/MM/YYYY HH:mm:ss');
   };
 
@@ -141,7 +141,7 @@ export default function Mp4Player(props) {
     const videoTimeSeconds = videoRef.current.currentTime;
     const calculatedDate = startDateTime.add(videoTimeSeconds, 'second');
     const calculatedDateTime = calculatedDate.format('DD/MM/YYYY HH:mm:ss');
-    
+
     // Update currentDateTime state
     setCurrentDateTime(calculatedDateTime);
 
@@ -198,13 +198,13 @@ export default function Mp4Player(props) {
       handleToastMessage("Selecione uma data/hora inicial!", "warning");
       return;
     }
-    
+
     // Calculate and update current date/time
     const videoTimeSeconds = videoRef.current.currentTime;
     const calculatedDate = startDateTime.add(videoTimeSeconds, 'second');
     const calculatedDateTime = calculatedDate.format('DD/MM/YYYY HH:mm:ss');
     setCurrentDateTime(calculatedDateTime);
-    
+
     setVehicleLabel(label);
     setVehicleDetails(vehicle);
     setVehicleDirection(direction);
@@ -244,20 +244,20 @@ export default function Mp4Player(props) {
       handleToastMessage("Selecione uma data/hora inicial!", "warning");
       return;
     }
-    
+
     // Calculate and update current date/time
     const videoTimeSeconds = videoRef.current.currentTime;
     const calculatedDate = startDateTime.add(videoTimeSeconds, 'second');
     const calculatedDateTime = calculatedDate.format('DD/MM/YYYY HH:mm:ss');
     setCurrentDateTime(calculatedDateTime);
-    
+
     setNewVehicleModalOpen(true);
   };
 
   return (
     <>
-      <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center', p: 2 }}>
-        <Box sx={{ p: 1, width: '100%', maxWidth: '40vw' }}>
+      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', p: 1 }}>
+        <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
           <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold', mb: 2 }}>
             Player de Vídeo MP4
           </Typography>
@@ -306,13 +306,13 @@ export default function Mp4Player(props) {
                   setCurrentDateTime(calculatedDateTime);
                 }}
                 onPlay={() => setIsPaused(false)}
-                style={{ width: '100%', maxHeight: '400px', borderRadius: '8px' }}
+                style={{ width: '100%', maxHeight: '600px', borderRadius: '8px' }}
               />
             </Box>
           )}
 
           {/* Campos de Controle */}
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'flex-start' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 1, alignItems: 'flex-start' }}>
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
               <DateTimePicker
                 label="Data/Hora Inicial"
@@ -320,10 +320,12 @@ export default function Mp4Player(props) {
                 onChange={(newValue) => setStartDateTime(newValue)}
                 format="DD/MM/YYYY HH:mm:ss"
                 ampm={false}
+                views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
+                timeSteps={{ minutes: 1, seconds: 1 }}
                 slotProps={{
                   textField: {
                     size: "small",
-                    fullWidth: true,
+                    sx: { minWidth: 200, flex: 1 },
                     color: "primary",
                     focused: true
                   }
@@ -331,7 +333,7 @@ export default function Mp4Player(props) {
               />
             </LocalizationProvider>
 
-            <FormControl size="small" sx={{ minWidth: 180 }}>
+            <FormControl size="small" sx={{ minWidth: 120, flex: '0 0 auto' }}>
               <InputLabel>Velocidade</InputLabel>
               <Select
                 value={playbackSpeed}
@@ -354,15 +356,15 @@ export default function Mp4Player(props) {
                 readOnly: true,
               }}
               size="small"
-              fullWidth
+              sx={{ minWidth: 200, flex: 1 }}
               color="secondary"
               focused
             />
           </Box>
         </Box>
 
-        <Box sx={{ p: 1, maxWidth: '60vw' }}>
-          <Box sx={{ pt: 3 }}>
+        <Box sx={{ p: 0.5, maxWidth: '52vw' }}>
+          <Box sx={{ pt: 1 }}>
             <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold' }}>
               Painel de Veiculos
             </Typography>
