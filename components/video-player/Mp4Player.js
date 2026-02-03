@@ -198,6 +198,11 @@ export default function Mp4Player(props) {
       handleToastMessage("Selecione uma data/hora inicial!", "warning");
       return;
     }
+
+    if (!videoRef.current.paused) {
+      videoRef.current.pause();
+      setIsPaused(true);
+    }
     
     // Calculate and update current date/time
     const videoTimeSeconds = videoRef.current.currentTime;
