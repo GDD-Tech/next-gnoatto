@@ -67,7 +67,7 @@ export default function VehicleItemList({ vehicleList, label, onVehicleClick, on
                 <ArrowBack />
               </Button>
             </Box>
-            <Tooltip title={img.description} arrow placement="top">
+            <Tooltip title={img.description} arrow placement="bottom" disableInteractive>
               <Typography
                 color="error"
                 sx={{
