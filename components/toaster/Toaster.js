@@ -23,7 +23,7 @@ export default function Toaster({ message, type = "info", onReset }) {
         clearTimeout(closeTimer);
       };
     }
-  }, [message, type, onReset]);
+  }, [message, type]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleClose() {
     setOpen(false);

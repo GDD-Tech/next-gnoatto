@@ -1,6 +1,6 @@
 'use client'
 import { Box, Button, TextField, Typography, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -138,7 +138,7 @@ export default function Mp4Player(props) {
     return currentDate.format('DD/MM/YYYY HH:mm:ss');
   };
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     if (!videoRef.current) return;
 
     if (videoRef.current.paused) {
@@ -148,10 +148,43 @@ export default function Mp4Player(props) {
       videoRef.current.pause();
       setIsPaused(true);
       // Calculate and update current date/time when paused
-      const calculatedDateTime = calculateCurrentDateTime();
-      setCurrentDateTime(calculatedDateTime);
+      const videoTimeSeconds = videoRef.current.currentTime;
+      if (startDateTime) {
+        const currentDate = startDateTime.add(videoTimeSeconds, 'second');
+        setCurrentDateTime(currentDate.format('DD/MM/YYYY HH:mm:ss'));
+      }
     }
-  };
+  }, [startDateTime]);
+
+  // Handle spacebar key press for play/pause
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      // Check if spacebar was pressed and video is loaded
+      if (event.code === 'Space' && videoRef.current && videoUrl) {
+        // Don't trigger play/pause if user is typing in an input field
+        const activeElement = document.activeElement;
+        const isTyping = activeElement && (
+          activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.isContentEditable
+        );
+
+        if (!isTyping) {
+          // Prevent default spacebar behavior (page scroll)
+          event.preventDefault();
+          handlePlayPause();
+        }
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('keydown', handleKeyPress);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [videoUrl, handlePlayPause]); // Re-attach listener when videoUrl or handlePlayPause changes
 
   const handleSpeedChange = (event) => {
     const speed = event.target.value;
@@ -263,9 +296,10 @@ export default function Mp4Player(props) {
     setRightDirection(event.target.value);
   };
 
-  const resetToastMessage = () => {
+  const resetToastMessage = useCallback(() => {
     setToastMessage(null);
-  };
+    setToastType('warning');
+  }, []);
 
   const deleteRow = (row) => {
     const newList = storedVehicles.filter(item => item.id !== row.id);
@@ -452,7 +486,7 @@ export default function Mp4Player(props) {
           leftDirection={leftDirection}
           rightDirection={rightDirection}
         />
-        {toastMessage && <Toaster message={toastMessage} type={toastType} onReset={resetToastMessage} />}
+        {toastMessage && <Toaster key={toastMessage + toastType} message={toastMessage} type={toastType} onReset={resetToastMessage} />}
         {storedVehicles.length > 0 && (
           <DataTable
             vehicleList={storedVehicles}
