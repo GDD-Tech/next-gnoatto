@@ -19,7 +19,6 @@ import DataTable from "../data-table/DataTable";
 dayjs.locale('pt-br');
 
 export default function Mp4Player(props) {
-  const [videoFile, setVideoFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
   const [startDateTime, setStartDateTime] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState('');
@@ -38,6 +37,8 @@ export default function Mp4Player(props) {
   const [isPaused, setIsPaused] = useState(true);
 
   const videoRef = useRef(null);
+  const lastFileDataRef = useRef(null); // Para comparar dados e evitar re-gerar URL
+  const videoUrlRef = useRef(null); // Para gerenciar a revogação da URL manualmente
 
   useEffect(() => {
     const stored = localStorage.getItem('vehicleList');
@@ -64,16 +65,53 @@ export default function Mp4Player(props) {
   }, [props.clearVehiclesFlag]);
 
   useEffect(() => {
-    if (props.videoFile) {
-      handleVideoLoad(props.videoFile);
+    const file = props.videoFile;
+    if (!file) {
+      if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
+      videoUrlRef.current = null;
+      setVideoUrl(null);
+      lastFileDataRef.current = null;
+      return;
     }
-  }, [props.videoFile]);
 
-  const handleVideoLoad = (file) => {
-    const url = URL.createObjectURL(file);
-    setVideoUrl(url);
-    setVideoFile(file);
-  };
+    // Verifica se os dados do arquivo são idênticos aos carregados pela última URL
+    const isSameFile = lastFileDataRef.current &&
+      lastFileDataRef.current.name === file.name &&
+      lastFileDataRef.current.size === file.size &&
+      lastFileDataRef.current.lastModified === file.lastModified;
+
+    // Se for o mesmo arquivo e já tivermos uma URL válida, não fazemos nada
+    // Isso evita o erro de tela preta causado pela revogação da URL no Strict Mode do React
+    if (isSameFile && videoUrl) {
+      return;
+    }
+
+    // Se chegamos aqui, ou o arquivo mudou ou é o primeiro carregamento
+    console.log("Carregando novo vídeo:", file.name);
+
+    // Revoga a URL anterior se existir
+    if (videoUrlRef.current) {
+      URL.revokeObjectURL(videoUrlRef.current);
+    }
+
+    const newUrl = URL.createObjectURL(file);
+    videoUrlRef.current = newUrl;
+    setVideoUrl(newUrl);
+    lastFileDataRef.current = {
+      name: file.name,
+      size: file.size,
+      lastModified: file.lastModified
+    };
+  }, [props.videoFile, videoUrl]);
+
+  // Limpeza final ao desmontar o componente
+  useEffect(() => {
+    return () => {
+      if (videoUrlRef.current) {
+        URL.revokeObjectURL(videoUrlRef.current);
+      }
+    };
+  }, []);
 
   const parseDateTime = (dateTimeStr) => {
     // Parse DD/MM/YYYY hh:mm:ss
