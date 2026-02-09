@@ -1,6 +1,6 @@
 'use client'
 import { Box, Button, TextField, Typography } from "@mui/material";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import AddIcon from '@mui/icons-material/Add';
 import { getVehicleData } from "@/utils/staticVehicles";
@@ -25,7 +25,7 @@ export default function ImageLoader(props) {
   const [toastType, setToastType] = useState('warning');
   const [vehicleDirection, setVehicleDirection] = useState('none');
   const [isNewVehicle, setIsNewVehicle] = useState(false);
-  
+
   useEffect(() => {
     const stored = localStorage.getItem('vehicleList');
     if (!stored) {
@@ -53,18 +53,18 @@ export default function ImageLoader(props) {
 
   const handleDirection = (label, direction, vehicle, axles, isNew) => {
     const object = {
-      id : uuidv4(),
-      trackId : isNew ? '' : selectedVehicle?.track_id,
-      time : selectedVehicle?.time,
-      date : selectedVehicle?.date,
-      direction : direction === 'left' ? leftDirection : rightDirection,
-      fromTo : direction === 'left' ? (rightDirection + " - " + leftDirection) : (leftDirection + " - " + rightDirection),
-      type : vehicle?.exportName ?? vehicleDetails?.exportName,
-      category : label ?? vehicleLabel,
-      raisedAxles : axles
+      id: uuidv4(),
+      trackId: isNew ? '' : selectedVehicle?.track_id,
+      time: selectedVehicle?.time,
+      date: selectedVehicle?.date,
+      direction: direction === 'left' ? leftDirection : rightDirection,
+      fromTo: direction === 'left' ? (rightDirection + " - " + leftDirection) : (leftDirection + " - " + rightDirection),
+      type: vehicle?.exportName ?? vehicleDetails?.exportName,
+      category: label ?? vehicleLabel,
+      raisedAxles: axles
     }
 
-    if(!isValidData(object)){
+    if (!isValidData(object)) {
       return;
     }
 
@@ -80,7 +80,7 @@ export default function ImageLoader(props) {
       // nothing special for now
     }
 
-    if(!isNew){
+    if (!isNew) {
       try {
         if (nextFnRef.current) nextFnRef.current();
       } catch (e) {
@@ -89,7 +89,7 @@ export default function ImageLoader(props) {
     }
   }
 
-  function handleToastMessage(message, type){
+  function handleToastMessage(message, type) {
     setToastMessage(message);
     setToastType(type);
   }
@@ -110,9 +110,9 @@ export default function ImageLoader(props) {
     setIsNewVehicle(isNew)
   };
 
-  const handleVehicleSelect = (vehicle) => {
+  const handleVehicleSelect = useCallback((vehicle) => {
     setSelectedVehicle(vehicle);
-  };
+  }, []);
 
   const handleChangeLeft = (event) => {
     setLeftDirection(event.target.value);
@@ -137,7 +137,7 @@ export default function ImageLoader(props) {
     localStorage.removeItem('vehicleList');
   }
 
-  const handleAddNewVehicle = () =>{
+  const handleAddNewVehicle = () => {
     if (!leftDirection || !rightDirection) {
       handleToastMessage("Direções não podem estar vazias!", "warning");
       return;
@@ -149,14 +149,14 @@ export default function ImageLoader(props) {
 
   return (
     <>
-      <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center'}}>
-        <Box sx={{p: 1, width:'100%', maxWidth: '40vw'}}>
+      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', p: 1 }}>
+        <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
           {selectedVehicle && (
-            <Box sx={{display: 'flex', flexDirection: 'column'}}>
-              <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Direção</Typography>
-                <Box sx={{ display: 'flex', gap: 2, my: 1}}>
-                <TextField label="Esquerda" color="error" size="small" focused value={leftDirection} onChange={handleChangeLeft}/>
-                <TextField label="Direita" color="success" size="small" focused value={rightDirection} onChange={handleChangeRight}/>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold' }}>Direção</Typography>
+              <Box sx={{ display: 'flex', gap: 2, my: 1 }}>
+                <TextField label="Esquerda" color="error" size="small" focused value={leftDirection} onChange={handleChangeLeft} fullWidth />
+                <TextField label="Direita" color="success" size="small" focused value={rightDirection} onChange={handleChangeRight} fullWidth />
                 <Button variant="contained" color="primary" onClick={handleAddNewVehicle} ><AddIcon /></Button>
               </Box>
             </Box>
@@ -164,9 +164,9 @@ export default function ImageLoader(props) {
           <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} />
         </Box>
         {selectedVehicle && (
-          <Box sx={{p: 1, maxWidth: '60vw'}}>
-            <Box sx={{ pt: 3}}>
-              <Typography variant="h5" sx={{color: '#22423A', fontWeight: 'bold'}}>Painel de Veiculos</Typography>
+          <Box sx={{ p: 0.5, maxWidth: '52vw' }}>
+            <Box sx={{ pt: 1 }}>
+              <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold' }}>Painel de Veiculos</Typography>
               <div className='gno-flex-column'>
                 <VehicleItemList vehicleList={getVehicleData('passeio')} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Passeio'} left={leftDirection} right={rightDirection} isNew={false}></VehicleItemList>
                 <VehicleItemList vehicleList={getVehicleData('onibus')} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Onibus'} left={leftDirection} right={rightDirection} isNew={false}></VehicleItemList>
@@ -189,7 +189,7 @@ export default function ImageLoader(props) {
             isNew={isNewVehicle}
           />
           <NewVehicleModal isOpen={newVehicleModalOpen} onClose={() => setNewVehicleModalOpen(false)} getVehicleData={getVehicleData} handleVehicleClick={handleVehicleClick} handleDirection={handleDirection} leftDirection={leftDirection} rightDirection={rightDirection} />
-          {toastMessage && <Toaster message={toastMessage} type={toastType} onReset={resetToastMessage}/>}
+          {toastMessage && <Toaster message={toastMessage} type={toastType} onReset={resetToastMessage} />}
           {storedVehicles.length > 0 && (
             <DataTable vehicleList={storedVehicles} onDelete={deleteRow} onDeleteAll={deleteAll} openResetDialog={props.resetRequest} onResetDialogOpened={props.onResetHandled} />
           )}

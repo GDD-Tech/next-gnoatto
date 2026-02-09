@@ -1,43 +1,64 @@
-import JSZip from "jszip";
 
-export async function readFile(file) {
-  if (!file) return;
+async function processFile(fileName, contentPromise, tempImagens, setRegistros) {
+  // 📄 JSON
+  if (fileName.endsWith(".json")) {
+    const content = await contentPromise("string");
+    const parsed = JSON.parse(content);
+    if (Array.isArray(parsed.detections)) {
+      setRegistros(parsed.detections);
+    } else {
+      console.warn("JSON não é um array.");
+    }
+  }
+
+  // 🖼️ Imagens
+  if (/\.(png|jpe?g|gif|webp)$/i.test(fileName)) {
+    const blob = await contentPromise("blob");
+    const url = URL.createObjectURL(blob);
+    tempImagens[fileName] = url;
+  }
+}
+
+export async function readFolder(files) {
+  if (!files || files.length === 0) return;
 
   try {
-    const zip = await JSZip.loadAsync(file);
     let tempRegistros = [];
     const tempImagens = {};
+    const setRegistros = (data) => { tempRegistros = data; };
 
-    // 🔹 Percorre todos os arquivos dentro do ZIP
     await Promise.all(
-      Object.keys(zip.files).map(async (fileName) => {
-        const fileEntry = zip.files[fileName];
-        if (fileEntry.dir) return;
-
-        // 📄 JSON
-        if (fileName.endsWith(".json")) {
-          const content = await fileEntry.async("string");
-          const parsed = JSON.parse(content);
-          if (Array.isArray(parsed.detections)) {
-            tempRegistros = parsed.detections;
-          } else {
-            console.warn("JSON não é um array.");
+      Array.from(files).map(async (file) => {
+        // For folder uploads, webkitRelativePath includes the root folder name.
+        // We strip it to match the internal structure (like in a ZIP).
+        let fileName = file.webkitRelativePath || file.name;
+        if (file.webkitRelativePath) {
+          const parts = fileName.split('/');
+          if (parts.length > 1) {
+            fileName = parts.slice(1).join('/');
           }
         }
 
-        // 🖼️ Imagens
-        if (/\.(png|jpe?g|gif|webp)$/i.test(fileName)) {
-          const blob = await fileEntry.async("blob");
-          const url = URL.createObjectURL(blob);
-          tempImagens[fileName] = url;
-        }
+        // Skip directories if they somehow end up here
+        if (file.size === 0 && !file.type) return;
+
+        await processFile(
+          fileName,
+          async (type) => {
+            if (type === "string") return await file.text();
+            if (type === "blob") return file;
+            return file;
+          },
+          tempImagens,
+          setRegistros
+        );
       })
     );
-    // Return both collected datasets so callers can use them
+
     return { tempRegistros, tempImagens };
   } catch (err) {
     console.error(err);
-    alert("Erro ao ler o arquivo ZIP");
+    alert("Erro ao ler a pasta");
     return { tempRegistros: [], tempImagens: {} };
   }
 }

@@ -33,14 +33,14 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
   };
 
   const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => {
-      const nextIndex = registros && prev + 1 < registros.length ? prev + 1 : prev;
-      if (registros && registros[nextIndex] && typeof onVehicleSelect === 'function') {
+    if (registros && currentIndex + 1 < registros.length) {
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      if (typeof onVehicleSelect === 'function') {
         onVehicleSelect(registros[nextIndex]);
       }
-      return nextIndex;
-    });
-  }, [registros, onVehicleSelect]);
+    }
+  }, [registros, onVehicleSelect, currentIndex]);
 
   useEffect(() => {
     if (typeof registerNext === 'function') {
@@ -50,14 +50,14 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
   }, [registerNext, handleNext]);
 
   const handlePrev = useCallback(() => {
-    setCurrentIndex((prev) => {
-      const nextIndex = prev - 1 >= 0 ? prev - 1 : prev;
+    if (currentIndex - 1 >= 0) {
+      const nextIndex = currentIndex - 1;
+      setCurrentIndex(nextIndex);
       if (registros && registros[nextIndex] && typeof onVehicleSelect === 'function') {
         onVehicleSelect(registros[nextIndex]);
       }
-      return nextIndex;
-    });
-  }, [registros, onVehicleSelect]);
+    }
+  }, [registros, onVehicleSelect, currentIndex]);
 
   // Keyboard navigation
   useEffect(() => {

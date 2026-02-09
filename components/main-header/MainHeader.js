@@ -19,7 +19,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Image from 'next/image';
 import logo from '@/assets/logo.webp'
-import { readFile } from "../../utils/fileReader";
+import { readFolder } from "../../utils/fileReader";
 import FullScreenSpinner from '../utility/FullScreenSpinner';
 
 const drawerWidth = 240;
@@ -31,7 +31,7 @@ function MainHeader(props) {
   const [loading, setLoading] = React.useState(false);
   const [exportMenuAnchor, setExportMenuAnchor] = React.useState(null);
   const [importMenuAnchor, setImportMenuAnchor] = React.useState(null);
-  const zipInputRef = React.useRef(null);
+  const folderInputRef = React.useRef(null);
   const mp4InputRef = React.useRef(null);
 
   const handleDrawerToggle = () => {
@@ -350,27 +350,33 @@ function MainHeader(props) {
     exportAxlesReport();
   };
 
-  async function handleFileUpload(event){
-    const file = event.target.files[0];
-    if(!file){
+  async function handleFolderUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) {
       return;
     }
     setLoading(true);
-    try {
-      const result = await readFile(file);
-      props.onLoadRecords(result, file.name);
-    } catch (error) {
-      console.error('Erro ao carregar arquivo:', error);
-      alert('Erro ao carregar arquivo');
-    } finally {
-      setLoading(false);
-      event.target.value = '';
-    }
+
+    // Pequeno delay para garantir que o spinner de loading apareça antes do processamento pesado
+    setTimeout(async () => {
+      try {
+        const result = await readFolder(files);
+        // use the folder name from the first file's path if available
+        const folderName = files[0].webkitRelativePath?.split('/')[0] || "Pasta de Dados";
+        props.onLoadRecords(result, folderName);
+      } catch (error) {
+        console.error('Erro ao carregar pasta:', error);
+        alert('Erro ao carregar pasta');
+      } finally {
+        setLoading(false);
+        if (folderInputRef.current) folderInputRef.current.value = '';
+      }
+    }, 100);
   }
 
-  function handleMp4Upload(event){
+  function handleMp4Upload(event) {
     const file = event.target.files[0];
-    if(!file){
+    if (!file) {
       return;
     }
     if (typeof props.onLoadMp4 === 'function') {
@@ -380,10 +386,10 @@ function MainHeader(props) {
     event.target.value = '';
   }
 
-  const handleImportZip = () => {
+  const handleImportFolder = () => {
     handleImportMenuClose();
     if (mobileOpen) setMobileOpen(false);
-    zipInputRef.current?.click();
+    folderInputRef.current?.click();
   };
 
   const handleImportMp4 = () => {
@@ -392,7 +398,7 @@ function MainHeader(props) {
     mp4InputRef.current?.click();
   };
 
-  function handleReset(){
+  function handleReset() {
     if (typeof props.onResetRequest === 'function') {
       props.onResetRequest();
     }
@@ -407,7 +413,7 @@ function MainHeader(props) {
       }
     }} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2 }}>
-        <Image src={logo} width={55} alt='logo'/>
+        <Image src={logo} width={55} alt='logo' />
       </Typography>
       <Divider />
       <List>
@@ -438,7 +444,7 @@ function MainHeader(props) {
     <>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar component="nav" position='static' sx={{backgroundColor : '#22423A'}}>
+        <AppBar component="nav" position='static' sx={{ backgroundColor: '#22423A' }}>
           <Toolbar>
             <IconButton
               color="inherit"
@@ -454,7 +460,7 @@ function MainHeader(props) {
               component="div"
               sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
             >
-              <Image src={logo} width={55} alt='logo'/>
+              <Image src={logo} width={55} alt='logo' />
             </Typography>
             <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
               {navItems.map((item) => (
@@ -486,11 +492,19 @@ function MainHeader(props) {
               open={Boolean(importMenuAnchor)}
               onClose={handleImportMenuClose}
             >
-              <MenuItem onClick={handleImportZip}>Importar ZIP</MenuItem>
+              <MenuItem onClick={handleImportFolder}>Importar Frames</MenuItem>
               <MenuItem onClick={handleImportMp4}>Importar MP4</MenuItem>
             </Menu>
             {/* Hidden file inputs */}
-            <input ref={zipInputRef} type="file" accept=".zip" style={{ display: 'none' }} onChange={handleFileUpload} />
+            <input
+              ref={folderInputRef}
+              type="file"
+              webkitdirectory=""
+              directory=""
+              multiple
+              style={{ display: 'none' }}
+              onChange={handleFolderUpload}
+            />
             <input ref={mp4InputRef} type="file" accept=".mp4,video/mp4" style={{ display: 'none' }} onChange={handleMp4Upload} />
           </Toolbar>
         </AppBar>
