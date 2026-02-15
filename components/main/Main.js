@@ -3,7 +3,7 @@ import { useState } from "react";
 import MainHeader from "@/components/main-header/MainHeader";
 import ImageLoader from "@/components/video-player/ImageLoader";
 import Mp4Player from "@/components/video-player/Mp4Player";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography } from '@mui/material';
 
 export default function Main() {
     const [mode, setMode] = useState('zip'); // 'zip' or 'mp4'
@@ -22,6 +22,8 @@ export default function Main() {
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [clearVehiclesFlag, setClearVehiclesFlag] = useState(0);
     const [importConflictType, setImportConflictType] = useState(null); // 'different_file' | 'same_file'
+    const [showContinueDialog, setShowContinueDialog] = useState(false);
+    const [continueFromLast, setContinueFromLast] = useState(false);
 
     function loadZipData(result, filename) {
         // Check if there's a different file being loaded and records exist
@@ -33,27 +35,27 @@ export default function Main() {
         if (hasRecords) {
             if (storedFileName && filename !== storedFileName) {
                 // Different file, existing records -> Warn to delete
-                setPendingFileData({ result, filename });
+                setPendingFileData({ result, filename, type: 'zip' });
                 setImportConflictType('different_file');
                 setShowConfirmDialog(true);
             } else if (filename === storedFileName) {
-               // Same file, existing records -> Ask to keep or delete
-               setPendingFileData({ result, filename });
+               // Same file, existing records -> Ask to continue from last
+               setPendingFileData({ result, filename, type: 'zip' });
                setImportConflictType('same_file');
-               setShowConfirmDialog(true);
+               setShowContinueDialog(true);
             } else {
                  // Should ideally not happen if hasRecords is true but no storedFileName, consider as different
-                 setPendingFileData({ result, filename });
+                 setPendingFileData({ result, filename, type: 'zip' });
                  setImportConflictType('different_file');
                  setShowConfirmDialog(true);
             }
         } else {
             // Load directly
-            applyFileData(result, filename);
+            applyFileData(result, filename, false);
         }
     }
 
-    function applyFileData(result, filename) {
+    function applyFileData(result, filename, continueFromLast = false) {
         const records = result?.tempRegistros ?? [];
         const images = result?.tempImagens ?? {};
         setRegistros(records);
@@ -61,15 +63,40 @@ export default function Main() {
         setCurrentFileName(filename);
         // Save filename to localStorage
         localStorage.setItem('currentFileName', filename);
+        setContinueFromLast(continueFromLast);
         setMode('zip');
     }
 
     function loadMp4Data(file) {
+        const storedVehicles = localStorage.getItem('vehicleList');
+        const storedFileName = localStorage.getItem('currentFileName');
+        const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
+
+        if (hasRecords && storedFileName) {
+            if (storedFileName !== file.name) {
+                // Different file - ask to delete old records
+                setImportConflictType('different_file');
+                setPendingFileData({ file, type: 'mp4' });
+                setShowConfirmDialog(true);
+            } else {
+                // Same file - ask to continue from last
+                setImportConflictType('same_file');
+                setPendingFileData({ file, type: 'mp4' });
+                setShowContinueDialog(true);
+            }
+        } else {
+            // Load directly
+            applyMp4Data(file, false);
+        }
+    }
+
+    function applyMp4Data(file, continueFromLast = false) {
         setMode('mp4');
         setVideoFile(file);
         // Save MP4 filename to state and localStorage
         setCurrentFileName(file.name);
         localStorage.setItem('currentFileName', file.name);
+        setContinueFromLast(continueFromLast);
     }
 
     function handleConfirmDeleteAndLoad() {
@@ -102,6 +129,42 @@ export default function Main() {
         setImportConflictType(null);
     }
 
+    function handleContinueFromLast() {
+        if (pendingFileData) {
+            if (pendingFileData.type === 'zip') {
+                applyFileData(pendingFileData.result, pendingFileData.filename, true);
+            } else if (pendingFileData.type === 'mp4') {
+                applyMp4Data(pendingFileData.file, true);
+            }
+        }
+        setShowContinueDialog(false);
+        setPendingFileData(null);
+        setImportConflictType(null);
+    }
+
+    function handleStartFromBeginning() {
+        // Clear existing records
+        localStorage.removeItem('vehicleList');
+        setClearVehiclesFlag(prev => prev + 1);
+        
+        if (pendingFileData) {
+            if (pendingFileData.type === 'zip') {
+                applyFileData(pendingFileData.result, pendingFileData.filename, false);
+            } else if (pendingFileData.type === 'mp4') {
+                applyMp4Data(pendingFileData.file, false);
+            }
+        }
+        setShowContinueDialog(false);
+        setPendingFileData(null);
+        setImportConflictType(null);
+    }
+
+    function handleCancelContinue() {
+        setShowContinueDialog(false);
+        setPendingFileData(null);
+        setImportConflictType(null);
+    }
+
     return (
         <>
             <MainHeader 
@@ -118,6 +181,7 @@ export default function Main() {
                     onResetHandled={() => setResetRequest(false)} 
                     clearVehiclesFlag={clearVehiclesFlag}
                     fileName={currentFileName}
+                    continueFromLast={continueFromLast}
                 />
             ) : (
                 <Mp4Player 
@@ -125,6 +189,7 @@ export default function Main() {
                     resetRequest={resetRequest} 
                     onResetHandled={() => setResetRequest(false)} 
                     clearVehiclesFlag={clearVehiclesFlag}
+                    continueFromLast={continueFromLast}
                 />
             )}
             
@@ -175,6 +240,30 @@ export default function Main() {
                     )}
                     <Button onClick={handleConfirmDeleteAndLoad} variant="contained" color="error">
                         {importConflictType === 'same_file' ? 'Apagar e Iniciar de Novo' : 'Confirmar e Deletar Registros'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Dialog para continuar do último registro */}
+            <Dialog open={showContinueDialog} onClose={handleCancelContinue}>
+                <DialogTitle>Continuar de onde parou?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Este arquivo já foi importado anteriormente e existem registros salvos.
+                    </DialogContentText>
+                    <DialogContentText sx={{ mt: 2 }}>
+                        Deseja continuar de onde parou ou começar uma nova contagem?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelContinue} color="inherit">
+                        Cancelar
+                    </Button>
+                    <Button onClick={handleStartFromBeginning} variant="outlined" color="warning">
+                        Começar do Início
+                    </Button>
+                    <Button onClick={handleContinueFromLast} variant="contained" color="primary">
+                        Continuar do Último
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -90,6 +90,28 @@ export default function ImageLoader(props) {
     }
   }, [props.clearVehiclesFlag]);
 
+  // Continue from last record when flag is set
+  useEffect(() => {
+    if (props.continueFromLast && props.loadedRecords && props.loadedRecords.length > 0) {
+      // Find the last vehicle with a trackId
+      const storedVehicles = localStorage.getItem('vehicleList');
+      if (storedVehicles) {
+        const vehicles = JSON.parse(storedVehicles);
+        const lastVehicleWithTrackId = vehicles
+          .filter(v => v.trackId && v.trackId !== '')
+          .sort((a, b) => parseInt(b.trackId) - parseInt(a.trackId))[0];
+        
+        if (lastVehicleWithTrackId) {
+          // Find this vehicle in loaded records
+          const record = props.loadedRecords.find(r => r.track_id === lastVehicleWithTrackId.trackId);
+          if (record) {
+            setSelectedVehicle(record);
+          }
+        }
+      }
+    }
+  }, [props.continueFromLast, props.loadedRecords]);
+
   const handleDirection = (label, direction, vehicle, axles, isNew) => {
     const object = {
       id: uuidv4(),
@@ -101,7 +123,8 @@ export default function ImageLoader(props) {
       type: vehicle?.exportName ?? vehicleDetails?.exportName,
       category: label ?? vehicleLabel,
       raisedAxles: axles,
-      fileName: props.fileName || ''
+      fileName: props.fileName || '',
+      videoTime: 0
     }
 
     if (!isValidData(object)) {

@@ -89,6 +89,27 @@ export default function Mp4Player(props) {
     }
   }, [rightDirection]);
 
+  // Save startDateTime to localStorage whenever it changes
+  useEffect(() => {
+    const currentFileName = localStorage.getItem('currentFileName');
+    if (startDateTime && currentFileName) {
+      const key = `startDateTime_${currentFileName}`;
+      localStorage.setItem(key, startDateTime.toISOString());
+    }
+  }, [startDateTime]);
+
+  // Load startDateTime from localStorage when file is loaded
+  useEffect(() => {
+    const currentFileName = localStorage.getItem('currentFileName');
+    if (currentFileName && props.videoFile?.name === currentFileName) {
+      const key = `startDateTime_${currentFileName}`;
+      const savedDateTime = localStorage.getItem(key);
+      if (savedDateTime) {
+        setStartDateTime(dayjs(savedDateTime));
+      }
+    }
+  }, [props.videoFile]);
+
   // Reload storedVehicles when clearVehiclesFlag changes
   useEffect(() => {
     if (props.clearVehiclesFlag > 0) {
@@ -142,6 +163,26 @@ export default function Mp4Player(props) {
       lastModified: file.lastModified
     };
   }, [props.videoFile, videoUrl]);
+
+  // Continue from last video time when flag is set
+  useEffect(() => {
+    if (props.continueFromLast && videoRef.current && videoUrl) {
+      const storedVehicles = localStorage.getItem('vehicleList');
+      if (storedVehicles) {
+        const vehicles = JSON.parse(storedVehicles);
+        if (vehicles.length > 0) {
+          // Get the last vehicle's videoTime
+          const lastVehicle = vehicles[vehicles.length - 1];
+          const videoTime = lastVehicle.videoTime || 0;
+          
+          if (videoTime > 0) {
+            // Set video to that time
+            videoRef.current.currentTime = videoTime;
+          }
+        }
+      }
+    }
+  }, [props.continueFromLast, videoUrl]);
 
   // Limpeza final ao desmontar o componente
   useEffect(() => {
@@ -275,7 +316,8 @@ export default function Mp4Player(props) {
       type: vehicle?.exportName ?? vehicleDetails?.exportName,
       category: label ?? vehicleLabel,
       raisedAxles: axles,
-      fileName: props.videoFile?.name || ''
+      fileName: props.videoFile?.name || '',
+      videoTime: videoRef.current?.currentTime || 0
     };
 
     if (!isValidData(object)) {
@@ -397,15 +439,20 @@ export default function Mp4Player(props) {
       await exportAsZip(storedVehicles, serviceTitle);
 
       // Clear all data
+      const currentFileName = localStorage.getItem('currentFileName');
       localStorage.removeItem('vehicleList');
       localStorage.removeItem('serviceTitle');
       localStorage.removeItem('leftDirection');
       localStorage.removeItem('rightDirection');
+      if (currentFileName) {
+        localStorage.removeItem(`startDateTime_${currentFileName}`);
+      }
       
       setStoredVehicles([]);
       setServiceTitle('');
       setLeftDirection('');
       setRightDirection('');
+      setStartDateTime(null);
       
       setCompleteServiceOpen(false);
       handleToastMessage("Serviço completado com sucesso!", "success");
