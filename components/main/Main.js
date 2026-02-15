@@ -27,6 +27,7 @@ export default function Main() {
 
     function loadZipData(result, filename) {
         // Check if there's a different file being loaded and records exist
+        if (typeof window === 'undefined') return;
         const storedVehicles = localStorage.getItem('vehicleList');
         const storedFileName = localStorage.getItem('currentFileName');
         const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
@@ -62,12 +63,15 @@ export default function Main() {
         setImagens(images);
         setCurrentFileName(filename);
         // Save filename to localStorage
-        localStorage.setItem('currentFileName', filename);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('currentFileName', filename);
+        }
         setContinueFromLast(continueFromLast);
         setMode('zip');
     }
 
     function loadMp4Data(file) {
+        if (typeof window === 'undefined') return;
         const storedVehicles = localStorage.getItem('vehicleList');
         const storedFileName = localStorage.getItem('currentFileName');
         const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
@@ -95,12 +99,15 @@ export default function Main() {
         setVideoFile(file);
         // Save MP4 filename to state and localStorage
         setCurrentFileName(file.name);
-        localStorage.setItem('currentFileName', file.name);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('currentFileName', file.name);
+        }
         setContinueFromLast(continueFromLast);
     }
 
     function handleConfirmDeleteAndLoad() {
         // Clear existing records and filename
+        if (typeof window === 'undefined') return;
         localStorage.removeItem('vehicleList');
         localStorage.removeItem('currentFileName');
         // Notify ImageLoader to reload data from localStorage
@@ -144,6 +151,7 @@ export default function Main() {
 
     function handleStartFromBeginning() {
         // Clear existing records
+        if (typeof window === 'undefined') return;
         localStorage.removeItem('vehicleList');
         setClearVehiclesFlag(prev => prev + 1);
         
