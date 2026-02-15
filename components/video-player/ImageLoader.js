@@ -31,6 +31,7 @@ export default function ImageLoader(props) {
   const [completeServiceOpen, setCompleteServiceOpen] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const stored = localStorage.getItem('vehicleList');
     if (!stored) {
       localStorage.setItem('vehicleList', JSON.stringify([]));
@@ -56,27 +57,28 @@ export default function ImageLoader(props) {
 
   // Save serviceTitle to localStorage whenever it changes
   useEffect(() => {
-    if (serviceTitle) {
+    if (typeof window !== 'undefined' && serviceTitle) {
       localStorage.setItem('serviceTitle', serviceTitle);
     }
   }, [serviceTitle]);
 
   // Save leftDirection to localStorage whenever it changes
   useEffect(() => {
-    if (leftDirection) {
+    if (typeof window !== 'undefined' && leftDirection) {
       localStorage.setItem('leftDirection', leftDirection);
     }
   }, [leftDirection]);
 
   // Save rightDirection to localStorage whenever it changes
   useEffect(() => {
-    if (rightDirection) {
+    if (typeof window !== 'undefined' && rightDirection) {
       localStorage.setItem('rightDirection', rightDirection);
     }
   }, [rightDirection]);
 
   // Reload storedVehicles when clearVehiclesFlag changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (props.clearVehiclesFlag > 0) {
       const stored = localStorage.getItem('vehicleList');
       if (!stored) {
@@ -92,6 +94,7 @@ export default function ImageLoader(props) {
 
   // Continue from last record when flag is set
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (props.continueFromLast && props.loadedRecords && props.loadedRecords.length > 0) {
       // Find the last vehicle with a trackId
       const storedVehicles = localStorage.getItem('vehicleList');
@@ -136,7 +139,9 @@ export default function ImageLoader(props) {
 
     updatedList.push(object);
     setStoredVehicles(updatedList);
-    localStorage.setItem('vehicleList', JSON.stringify(updatedList));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vehicleList', JSON.stringify(updatedList));
+    }
 
     handleToastMessage("Veículo adicionado!", "success");
     if (!exists) {

@@ -45,6 +45,7 @@ export default function Mp4Player(props) {
   const videoUrlRef = useRef(null); // Para gerenciar a revogação da URL manualmente
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const stored = localStorage.getItem('vehicleList');
     if (!stored) {
       localStorage.setItem('vehicleList', JSON.stringify([]));
@@ -70,27 +71,28 @@ export default function Mp4Player(props) {
 
   // Save serviceTitle to localStorage whenever it changes
   useEffect(() => {
-    if (serviceTitle) {
+    if (typeof window !== 'undefined' && serviceTitle) {
       localStorage.setItem('serviceTitle', serviceTitle);
     }
   }, [serviceTitle]);
 
   // Save leftDirection to localStorage whenever it changes
   useEffect(() => {
-    if (leftDirection) {
+    if (typeof window !== 'undefined' && leftDirection) {
       localStorage.setItem('leftDirection', leftDirection);
     }
   }, [leftDirection]);
 
   // Save rightDirection to localStorage whenever it changes
   useEffect(() => {
-    if (rightDirection) {
+    if (typeof window !== 'undefined' && rightDirection) {
       localStorage.setItem('rightDirection', rightDirection);
     }
   }, [rightDirection]);
 
   // Save startDateTime to localStorage whenever it changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const currentFileName = localStorage.getItem('currentFileName');
     if (startDateTime && currentFileName) {
       const key = `startDateTime_${currentFileName}`;
@@ -100,6 +102,7 @@ export default function Mp4Player(props) {
 
   // Load startDateTime from localStorage when file is loaded
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const currentFileName = localStorage.getItem('currentFileName');
     if (currentFileName && props.videoFile?.name === currentFileName) {
       const key = `startDateTime_${currentFileName}`;
@@ -112,6 +115,7 @@ export default function Mp4Player(props) {
 
   // Reload storedVehicles when clearVehiclesFlag changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (props.clearVehiclesFlag > 0) {
       const stored = localStorage.getItem('vehicleList');
       if (!stored) {
@@ -166,6 +170,7 @@ export default function Mp4Player(props) {
 
   // Continue from last video time when flag is set
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (props.continueFromLast && videoRef.current && videoUrl) {
       const storedVehicles = localStorage.getItem('vehicleList');
       if (storedVehicles) {

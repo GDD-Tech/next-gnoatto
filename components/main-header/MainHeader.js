@@ -433,20 +433,29 @@ function MainHeader(props) {
     handleReset();
   }
 
+  /* Novo estado para armazenar o nome do arquivo para o dialog */
+  const [resetFileName, setResetFileName] = React.useState('');
+
   function handleResetCurrentService() {
     handleResetMenuClose();
     if (mobileOpen) setMobileOpen(false);
+    
+    if (typeof window !== 'undefined') {
+        setResetFileName(localStorage.getItem('currentFileName') || 'Desconhecido');
+    }
     setResetCurrentServiceDialog(true);
   }
 
   function confirmResetCurrentService() {
+    if (typeof window === 'undefined') return;
+
     const currentFileName = localStorage.getItem('currentFileName');
     if (!currentFileName) {
       alert('Nenhum arquivo carregado atualmente.');
       setResetCurrentServiceDialog(false);
       return;
     }
-
+    // ... resto da função
     const raw = localStorage.getItem('vehicleList');
     if (!raw) {
       alert('Nenhum registro para resetar.');
@@ -460,12 +469,11 @@ function MainHeader(props) {
     localStorage.setItem('vehicleList', JSON.stringify(filteredList));
     setResetCurrentServiceDialog(false);
     
-    // Force components to reload by triggering clearVehiclesFlag
-    // DO NOT call onResetRequest() as it will trigger the delete all dialog
     if (typeof props.onClearVehicles === 'function') {
       props.onClearVehicles();
     }
   }
+
 
   function cancelResetCurrentService() {
     setResetCurrentServiceDialog(false);
@@ -615,7 +623,7 @@ function MainHeader(props) {
             Arquivo:
           </Typography>
           <Typography sx={{ fontWeight: 'normal' }}>
-            {localStorage.getItem('currentFileName') || 'Desconhecido'}
+            {resetFileName}
           </Typography>
         </DialogContent>
         <DialogActions>
