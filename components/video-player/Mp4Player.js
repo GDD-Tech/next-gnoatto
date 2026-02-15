@@ -23,6 +23,7 @@ export default function Mp4Player(props) {
   const [startDateTime, setStartDateTime] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState('');
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [serviceTitle, setServiceTitle] = useState('');
   const [leftDirection, setLeftDirection] = useState('');
   const [rightDirection, setRightDirection] = useState('');
   const [vehicleLabel, setVehicleLabel] = useState('');
@@ -48,7 +49,19 @@ export default function Mp4Player(props) {
     } else {
       setStoredVehicles(JSON.parse(stored));
     }
+    // Load serviceTitle from localStorage
+    const storedTitle = localStorage.getItem('serviceTitle');
+    if (storedTitle) {
+      setServiceTitle(storedTitle);
+    }
   }, []);
+
+  // Save serviceTitle to localStorage whenever it changes
+  useEffect(() => {
+    if (serviceTitle) {
+      localStorage.setItem('serviceTitle', serviceTitle);
+    }
+  }, [serviceTitle]);
 
   // Reload storedVehicles when clearVehiclesFlag changes
   useEffect(() => {
@@ -256,6 +269,10 @@ export default function Mp4Player(props) {
   }
 
   function isValidData(data) {
+    if (!serviceTitle) {
+      handleToastMessage("Titulo do Serviço não pode estar vazio!", "warning");
+      return false;
+    }
     if (!data.direction || !leftDirection || !rightDirection) {
       handleToastMessage("Direções não podem estar vazias!", "warning");
       return false;
@@ -313,6 +330,10 @@ export default function Mp4Player(props) {
   };
 
   const handleAddNewVehicle = () => {
+    if (!serviceTitle) {
+      handleToastMessage("Titulo do Serviço não pode estar vazio!", "warning");
+      return;
+    }
     if (!leftDirection || !rightDirection) {
       handleToastMessage("Direções não podem estar vazias!", "warning");
       return;
@@ -338,6 +359,24 @@ export default function Mp4Player(props) {
           <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold', mb: 2 }}>
             Player de Vídeo MP4
           </Typography>
+
+          {/* Titulo do Serviço - Acima das direções */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', mb: 1 }}>
+              Titulo do Serviço
+            </Typography>
+            <Box>
+              <TextField
+                label="Titulo do Serviço"
+                color="primary"
+                size="small"
+                focused
+                value={serviceTitle}
+                onChange={(e) => setServiceTitle(e.target.value)}
+                fullWidth
+              />
+            </Box>
+          </Box>
 
           {/* Direção - Acima do vídeo */}
           <Box sx={{ mb: 3 }}>

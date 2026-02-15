@@ -153,7 +153,11 @@ function MainHeader(props) {
         const a = document.createElement('a');
         a.href = url;
         const ts = new Date().toISOString().replace(/[:.]/g, '-');
-        a.download = `vehicle_count_${ts}.csv`;
+        // Get serviceTitle from localStorage
+        const serviceTitle = localStorage.getItem('serviceTitle') || 'sem_titulo';
+        // Sanitize serviceTitle for filename (remove invalid characters)
+        const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
+        a.download = `${sanitizedTitle}_vehicle_count_${ts}.csv`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -330,7 +334,11 @@ function MainHeader(props) {
         const a = document.createElement('a');
         a.href = url;
         const ts = new Date().toISOString().replace(/[:.]/g, '-');
-        a.download = `axle_count_${ts}.csv`;
+        // Get serviceTitle from localStorage
+        const serviceTitle = localStorage.getItem('serviceTitle') || 'sem_titulo';
+        // Sanitize serviceTitle for filename (remove invalid characters)
+        const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
+        a.download = `${sanitizedTitle}_axle_count_${ts}.csv`;
         document.body.appendChild(a);
         a.click();
         a.remove();

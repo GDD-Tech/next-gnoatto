@@ -15,6 +15,7 @@ import DataTable from "../data-table/DataTable";
 export default function ImageLoader(props) {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [vehicleDetails, setVehicleDetails] = useState(null);
+  const [serviceTitle, setServiceTitle] = useState('');
   const [leftDirection, setLeftDirection] = useState('');
   const [rightDirection, setRightDirection] = useState('');
   const [vehicleLabel, setVehicleLabel] = useState('');
@@ -34,7 +35,19 @@ export default function ImageLoader(props) {
     } else {
       setStoredVehicles(JSON.parse(stored));
     }
+    // Load serviceTitle from localStorage
+    const storedTitle = localStorage.getItem('serviceTitle');
+    if (storedTitle) {
+      setServiceTitle(storedTitle);
+    }
   }, []);
+
+  // Save serviceTitle to localStorage whenever it changes
+  useEffect(() => {
+    if (serviceTitle) {
+      localStorage.setItem('serviceTitle', serviceTitle);
+    }
+  }, [serviceTitle]);
 
   // Reload storedVehicles when clearVehiclesFlag changes
   useEffect(() => {
@@ -95,6 +108,10 @@ export default function ImageLoader(props) {
   }
 
   function isValidData(data) {
+    if (!serviceTitle) {
+      handleToastMessage("Titulo do Serviço não pode estar vazio!", "warning");
+      return false;
+    }
     if (!data.direction || !leftDirection || !rightDirection) {
       handleToastMessage("Direções não podem estar vazias!", "warning");
       return false;
@@ -138,6 +155,10 @@ export default function ImageLoader(props) {
   }
 
   const handleAddNewVehicle = () => {
+    if (!serviceTitle) {
+      handleToastMessage("Titulo do Serviço não pode estar vazio!", "warning");
+      return;
+    }
     if (!leftDirection || !rightDirection) {
       handleToastMessage("Direções não podem estar vazias!", "warning");
       return;
@@ -153,7 +174,19 @@ export default function ImageLoader(props) {
         <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
           {selectedVehicle && (
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold' }}>Direção</Typography>
+              <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold' }}>Titulo do Serviço</Typography>
+              <Box sx={{ display: 'flex', gap: 2, my: 1 }}>
+                <TextField 
+                  label="Titulo do Serviço" 
+                  color="primary" 
+                  size="small" 
+                  focused 
+                  value={serviceTitle} 
+                  onChange={(e) => setServiceTitle(e.target.value)} 
+                  fullWidth 
+                />
+              </Box>
+              <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold', mt: 2 }}>Direção</Typography>
               <Box sx={{ display: 'flex', gap: 2, my: 1 }}>
                 <TextField label="Esquerda" color="error" size="small" focused value={leftDirection} onChange={handleChangeLeft} fullWidth />
                 <TextField label="Direita" color="success" size="small" focused value={rightDirection} onChange={handleChangeRight} fullWidth />
