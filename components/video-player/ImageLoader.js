@@ -11,6 +11,8 @@ import BasicModal from "../modal/BasicModal";
 import NewVehicleModal from "../modal/NewVehicleModal";
 import Toaster from "../toaster/Toaster";
 import DataTable from "../data-table/DataTable";
+import CompleteServiceModal from "../modal/CompleteServiceModal";
+import { exportAsZip } from "@/utils/exportUtils";
 
 export default function ImageLoader(props) {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
@@ -26,6 +28,7 @@ export default function ImageLoader(props) {
   const [toastType, setToastType] = useState('warning');
   const [vehicleDirection, setVehicleDirection] = useState('none');
   const [isNewVehicle, setIsNewVehicle] = useState(false);
+  const [completeServiceOpen, setCompleteServiceOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('vehicleList');
@@ -40,6 +43,15 @@ export default function ImageLoader(props) {
     if (storedTitle) {
       setServiceTitle(storedTitle);
     }
+    // Load directions from localStorage
+    const storedLeftDirection = localStorage.getItem('leftDirection');
+    if (storedLeftDirection) {
+      setLeftDirection(storedLeftDirection);
+    }
+    const storedRightDirection = localStorage.getItem('rightDirection');
+    if (storedRightDirection) {
+      setRightDirection(storedRightDirection);
+    }
   }, []);
 
   // Save serviceTitle to localStorage whenever it changes
@@ -48,6 +60,20 @@ export default function ImageLoader(props) {
       localStorage.setItem('serviceTitle', serviceTitle);
     }
   }, [serviceTitle]);
+
+  // Save leftDirection to localStorage whenever it changes
+  useEffect(() => {
+    if (leftDirection) {
+      localStorage.setItem('leftDirection', leftDirection);
+    }
+  }, [leftDirection]);
+
+  // Save rightDirection to localStorage whenever it changes
+  useEffect(() => {
+    if (rightDirection) {
+      localStorage.setItem('rightDirection', rightDirection);
+    }
+  }, [rightDirection]);
 
   // Reload storedVehicles when clearVehiclesFlag changes
   useEffect(() => {
@@ -74,7 +100,8 @@ export default function ImageLoader(props) {
       fromTo: direction === 'left' ? (rightDirection + " - " + leftDirection) : (leftDirection + " - " + rightDirection),
       type: vehicle?.exportName ?? vehicleDetails?.exportName,
       category: label ?? vehicleLabel,
-      raisedAxles: axles
+      raisedAxles: axles,
+      fileName: props.fileName || ''
     }
 
     if (!isValidData(object)) {
@@ -166,6 +193,42 @@ export default function ImageLoader(props) {
     setNewVehicleModalOpen(true);
   }
 
+  const handleCompleteService = () => {
+    if (!serviceTitle) {
+      handleToastMessage("Titulo do Serviço não pode estar vazio para completar!", "warning");
+      return;
+    }
+    if (storedVehicles.length === 0) {
+      handleToastMessage("Não há dados para exportar!", "warning");
+      return;
+    }
+    setCompleteServiceOpen(true);
+  };
+
+  const handleConfirmCompleteService = async () => {
+    try {
+      // Export vehicles and axles as ZIP
+      await exportAsZip(storedVehicles, serviceTitle);
+
+      // Clear all data
+      localStorage.removeItem('vehicleList');
+      localStorage.removeItem('serviceTitle');
+      localStorage.removeItem('leftDirection');
+      localStorage.removeItem('rightDirection');
+      
+      setStoredVehicles([]);
+      setServiceTitle('');
+      setLeftDirection('');
+      setRightDirection('');
+      
+      setCompleteServiceOpen(false);
+      handleToastMessage("Serviço completado com sucesso!", "success");
+    } catch (error) {
+      console.error('Error completing service:', error);
+      handleToastMessage("Erro ao completar serviço: " + error.message, "error");
+    }
+  };
+
   const nextFnRef = useRef(null);
 
   return (
@@ -175,7 +238,7 @@ export default function ImageLoader(props) {
           {selectedVehicle && (
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold' }}>Titulo do Serviço</Typography>
-              <Box sx={{ display: 'flex', gap: 2, my: 1 }}>
+              <Box sx={{ display: 'flex', gap: 2, my: 1, alignItems: 'center' }}>
                 <TextField 
                   label="Titulo do Serviço" 
                   color="primary" 
@@ -185,6 +248,15 @@ export default function ImageLoader(props) {
                   onChange={(e) => setServiceTitle(e.target.value)} 
                   fullWidth 
                 />
+                <Button 
+                  variant="contained" 
+                  color="success"
+                  onClick={handleCompleteService}
+                  disabled={!serviceTitle || storedVehicles.length === 0}
+                  sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }}
+                >
+                  Completar Serviço
+                </Button>
               </Box>
               <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold', mt: 2 }}>Direção</Typography>
               <Box sx={{ display: 'flex', gap: 2, my: 1 }}>
@@ -226,6 +298,14 @@ export default function ImageLoader(props) {
           {storedVehicles.length > 0 && (
             <DataTable vehicleList={storedVehicles} onDelete={deleteRow} onDeleteAll={deleteAll} openResetDialog={props.resetRequest} onResetDialogOpened={props.onResetHandled} />
           )}
+          <CompleteServiceModal
+            open={completeServiceOpen}
+            onClose={() => setCompleteServiceOpen(false)}
+            onConfirm={handleConfirmCompleteService}
+            serviceTitle={serviceTitle}
+            vehicleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_vehicle_count_[timestamp].csv`}
+            axleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_axle_count_[timestamp].csv`}
+          />
         </Box>
       )}
     </>

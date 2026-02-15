@@ -17,13 +17,18 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 import Image from 'next/image';
 import logo from '@/assets/logo.webp'
 import { readFolder } from "../../utils/fileReader";
 import FullScreenSpinner from '../utility/FullScreenSpinner';
 
 const drawerWidth = 240;
-const navItems = ['Importar Arquivo', 'Resetar Contagem', 'Exportar Dados'];
+const navItems = ['Importar Arquivo', 'Resetar...', 'Exportar Dados'];
 
 function MainHeader(props) {
   const { window } = props;
@@ -31,6 +36,8 @@ function MainHeader(props) {
   const [loading, setLoading] = React.useState(false);
   const [exportMenuAnchor, setExportMenuAnchor] = React.useState(null);
   const [importMenuAnchor, setImportMenuAnchor] = React.useState(null);
+  const [resetMenuAnchor, setResetMenuAnchor] = React.useState(null);
+  const [resetCurrentServiceDialog, setResetCurrentServiceDialog] = React.useState(false);
   const folderInputRef = React.useRef(null);
   const mp4InputRef = React.useRef(null);
 
@@ -52,6 +59,14 @@ function MainHeader(props) {
 
   const handleImportMenuClose = () => {
     setImportMenuAnchor(null);
+  };
+
+  const handleResetMenuOpen = (event) => {
+    setResetMenuAnchor(event.currentTarget);
+  };
+
+  const handleResetMenuClose = () => {
+    setResetMenuAnchor(null);
   };
 
   const exportStoredVehicles = () => {
@@ -180,8 +195,8 @@ function MainHeader(props) {
         // Open submenu instead of direct export
         handleExportMenuOpen(event);
         break;
-      case 'Resetar Contagem':
-        handleReset();
+      case 'Resetar...':
+        handleResetMenuOpen(event);
         break;
       case 'Importar Arquivo':
         // Open submenu instead of direct upload
@@ -412,6 +427,50 @@ function MainHeader(props) {
     }
   }
 
+  function handleResetTotal() {
+    handleResetMenuClose();
+    if (mobileOpen) setMobileOpen(false);
+    handleReset();
+  }
+
+  function handleResetCurrentService() {
+    handleResetMenuClose();
+    if (mobileOpen) setMobileOpen(false);
+    setResetCurrentServiceDialog(true);
+  }
+
+  function confirmResetCurrentService() {
+    const currentFileName = localStorage.getItem('currentFileName');
+    if (!currentFileName) {
+      alert('Nenhum arquivo carregado atualmente.');
+      setResetCurrentServiceDialog(false);
+      return;
+    }
+
+    const raw = localStorage.getItem('vehicleList');
+    if (!raw) {
+      alert('Nenhum registro para resetar.');
+      setResetCurrentServiceDialog(false);
+      return;
+    }
+
+    const list = JSON.parse(raw);
+    const filteredList = list.filter(v => v.fileName !== currentFileName);
+    
+    localStorage.setItem('vehicleList', JSON.stringify(filteredList));
+    setResetCurrentServiceDialog(false);
+    
+    // Force components to reload by triggering clearVehiclesFlag
+    // DO NOT call onResetRequest() as it will trigger the delete all dialog
+    if (typeof props.onClearVehicles === 'function') {
+      props.onClearVehicles();
+    }
+  }
+
+  function cancelResetCurrentService() {
+    setResetCurrentServiceDialog(false);
+  }
+
   const drawer = (
     <Box onClick={(e) => {
       // Don't close drawer if clicking on submenu items
@@ -503,6 +562,15 @@ function MainHeader(props) {
               <MenuItem onClick={handleImportFolder}>Importar Frames</MenuItem>
               <MenuItem onClick={handleImportMp4}>Importar MP4</MenuItem>
             </Menu>
+            {/* Reset submenu */}
+            <Menu
+              anchorEl={resetMenuAnchor}
+              open={Boolean(resetMenuAnchor)}
+              onClose={handleResetMenuClose}
+            >
+              <MenuItem onClick={handleResetTotal}>Contagem Total</MenuItem>
+              <MenuItem onClick={handleResetCurrentService}>Serviço Atual</MenuItem>
+            </Menu>
             {/* Hidden file inputs */}
             <input
               ref={folderInputRef}
@@ -535,6 +603,30 @@ function MainHeader(props) {
         </nav>
       </Box>
       <FullScreenSpinner open={loading} />
+      
+      {/* Reset Current Service Confirmation Dialog */}
+      <Dialog open={resetCurrentServiceDialog} onClose={cancelResetCurrentService}>
+        <DialogTitle>Confirmar Reset do Serviço Atual</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja remover todos os registros do arquivo atual?
+          </DialogContentText>
+          <Typography sx={{ mt: 2, fontWeight: 'bold' }}>
+            Arquivo:
+          </Typography>
+          <Typography sx={{ fontWeight: 'normal' }}>
+            {localStorage.getItem('currentFileName') || 'Desconhecido'}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelResetCurrentService} color="inherit">
+            Cancelar
+          </Button>
+          <Button onClick={confirmResetCurrentService} variant="contained" color="error">
+            Confirmar e Deletar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

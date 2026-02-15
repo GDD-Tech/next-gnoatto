@@ -67,6 +67,9 @@ export default function Main() {
     function loadMp4Data(file) {
         setMode('mp4');
         setVideoFile(file);
+        // Save MP4 filename to state and localStorage
+        setCurrentFileName(file.name);
+        localStorage.setItem('currentFileName', file.name);
     }
 
     function handleConfirmDeleteAndLoad() {
@@ -104,7 +107,8 @@ export default function Main() {
             <MainHeader 
                 onLoadRecords={loadZipData} 
                 onLoadMp4={loadMp4Data}
-                onResetRequest={() => setResetRequest(true)} 
+                onResetRequest={() => setResetRequest(true)}
+                onClearVehicles={() => setClearVehiclesFlag(prev => prev + 1)}
             />
             {mode === 'zip' ? (
                 <ImageLoader 
@@ -112,7 +116,8 @@ export default function Main() {
                     loadedImages={imagens} 
                     resetRequest={resetRequest} 
                     onResetHandled={() => setResetRequest(false)} 
-                    clearVehiclesFlag={clearVehiclesFlag} 
+                    clearVehiclesFlag={clearVehiclesFlag}
+                    fileName={currentFileName}
                 />
             ) : (
                 <Mp4Player 

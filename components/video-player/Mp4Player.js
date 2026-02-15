@@ -14,6 +14,8 @@ import BasicModal from "../modal/BasicModal";
 import NewVehicleModal from "../modal/NewVehicleModal";
 import Toaster from "../toaster/Toaster";
 import DataTable from "../data-table/DataTable";
+import CompleteServiceModal from "../modal/CompleteServiceModal";
+import { exportAsZip } from "@/utils/exportUtils";
 
 // Configure dayjs to use Brazilian Portuguese
 dayjs.locale('pt-br');
@@ -36,6 +38,7 @@ export default function Mp4Player(props) {
   const [vehicleDirection, setVehicleDirection] = useState('none');
   const [isNewVehicle, setIsNewVehicle] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
+  const [completeServiceOpen, setCompleteServiceOpen] = useState(false);
 
   const videoRef = useRef(null);
   const lastFileDataRef = useRef(null); // Para comparar dados e evitar re-gerar URL
@@ -54,6 +57,15 @@ export default function Mp4Player(props) {
     if (storedTitle) {
       setServiceTitle(storedTitle);
     }
+    // Load directions from localStorage
+    const storedLeftDirection = localStorage.getItem('leftDirection');
+    if (storedLeftDirection) {
+      setLeftDirection(storedLeftDirection);
+    }
+    const storedRightDirection = localStorage.getItem('rightDirection');
+    if (storedRightDirection) {
+      setRightDirection(storedRightDirection);
+    }
   }, []);
 
   // Save serviceTitle to localStorage whenever it changes
@@ -62,6 +74,20 @@ export default function Mp4Player(props) {
       localStorage.setItem('serviceTitle', serviceTitle);
     }
   }, [serviceTitle]);
+
+  // Save leftDirection to localStorage whenever it changes
+  useEffect(() => {
+    if (leftDirection) {
+      localStorage.setItem('leftDirection', leftDirection);
+    }
+  }, [leftDirection]);
+
+  // Save rightDirection to localStorage whenever it changes
+  useEffect(() => {
+    if (rightDirection) {
+      localStorage.setItem('rightDirection', rightDirection);
+    }
+  }, [rightDirection]);
 
   // Reload storedVehicles when clearVehiclesFlag changes
   useEffect(() => {
@@ -248,7 +274,8 @@ export default function Mp4Player(props) {
       fromTo: direction === 'left' ? (rightDirection + " - " + leftDirection) : (leftDirection + " - " + rightDirection),
       type: vehicle?.exportName ?? vehicleDetails?.exportName,
       category: label ?? vehicleLabel,
-      raisedAxles: axles
+      raisedAxles: axles,
+      fileName: props.videoFile?.name || ''
     };
 
     if (!isValidData(object)) {
@@ -352,6 +379,42 @@ export default function Mp4Player(props) {
     setNewVehicleModalOpen(true);
   };
 
+  const handleCompleteService = () => {
+    if (!serviceTitle) {
+      handleToastMessage("Titulo do Serviço não pode estar vazio para completar!", "warning");
+      return;
+    }
+    if (storedVehicles.length === 0) {
+      handleToastMessage("Não há dados para exportar!", "warning");
+      return;
+    }
+    setCompleteServiceOpen(true);
+  };
+
+  const handleConfirmCompleteService = async () => {
+    try {
+      // Export vehicles and axles as ZIP
+      await exportAsZip(storedVehicles, serviceTitle);
+
+      // Clear all data
+      localStorage.removeItem('vehicleList');
+      localStorage.removeItem('serviceTitle');
+      localStorage.removeItem('leftDirection');
+      localStorage.removeItem('rightDirection');
+      
+      setStoredVehicles([]);
+      setServiceTitle('');
+      setLeftDirection('');
+      setRightDirection('');
+      
+      setCompleteServiceOpen(false);
+      handleToastMessage("Serviço completado com sucesso!", "success");
+    } catch (error) {
+      console.error('Error completing service:', error);
+      handleToastMessage("Erro ao completar serviço: " + error.message, "error");
+    }
+  };
+
   return (
     <>
       <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', p: 1 }}>
@@ -365,7 +428,7 @@ export default function Mp4Player(props) {
             <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', mb: 1 }}>
               Titulo do Serviço
             </Typography>
-            <Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <TextField
                 label="Titulo do Serviço"
                 color="primary"
@@ -375,6 +438,15 @@ export default function Mp4Player(props) {
                 onChange={(e) => setServiceTitle(e.target.value)}
                 fullWidth
               />
+              <Button 
+                variant="contained" 
+                color="success"
+                onClick={handleCompleteService}
+                disabled={!serviceTitle || storedVehicles.length === 0}
+                sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }}
+              >
+                Completar Serviço
+              </Button>
             </Box>
           </Box>
 
@@ -535,6 +607,14 @@ export default function Mp4Player(props) {
             onResetDialogOpened={props.onResetHandled}
           />
         )}
+        <CompleteServiceModal
+          open={completeServiceOpen}
+          onClose={() => setCompleteServiceOpen(false)}
+          onConfirm={handleConfirmCompleteService}
+          serviceTitle={serviceTitle}
+          vehicleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_vehicle_count_[timestamp].csv`}
+          axleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_axle_count_[timestamp].csv`}
+        />
       </Box>
     </>
   );
