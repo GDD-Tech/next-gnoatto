@@ -80,12 +80,12 @@ export default function Main() {
             if (storedFileName !== file.name) {
                 // Different file - ask to delete old records
                 setImportConflictType('different_file');
-                setPendingFileData({ file, type: 'mp4' });
+                setPendingFileData({ file, filename: file.name, type: 'mp4' });
                 setShowConfirmDialog(true);
             } else {
                 // Same file - ask to continue from last
                 setImportConflictType('same_file');
-                setPendingFileData({ file, type: 'mp4' });
+                setPendingFileData({ file, filename: file.name, type: 'mp4' });
                 setShowContinueDialog(true);
             }
         } else {
@@ -123,7 +123,11 @@ export default function Main() {
 
     function handleKeepDataAndLoad() {
         if (pendingFileData) {
-            applyFileData(pendingFileData.result, pendingFileData.filename);
+            if (pendingFileData.type === 'zip') {
+                applyFileData(pendingFileData.result, pendingFileData.filename);
+            } else if (pendingFileData.type === 'mp4') {
+                applyMp4Data(pendingFileData.file);
+            }
         }
         setShowConfirmDialog(false);
         setPendingFileData(null);
@@ -238,16 +242,14 @@ export default function Main() {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancelLoad} color="inherit">
+                    <Button onClick={handleCancelLoad} color="inherit" size="small" sx={{ fontSize: '0.75rem' }}>
                         Cancelar
                     </Button>
-                    {importConflictType === 'same_file' && (
-                        <Button onClick={handleKeepDataAndLoad} variant="outlined" color="primary">
-                            Manter Dados Salvos
-                        </Button>
-                    )}
-                    <Button onClick={handleConfirmDeleteAndLoad} variant="contained" color="error">
-                        {importConflictType === 'same_file' ? 'Apagar e Iniciar de Novo' : 'Confirmar e Deletar Registros'}
+                    <Button onClick={handleKeepDataAndLoad} variant="outlined" color="primary" size="small" sx={{ fontSize: '0.75rem' }}>
+                        {importConflictType === 'same_file' ? 'Manter Dados' : 'Manter Contagem'}
+                    </Button>
+                    <Button onClick={handleConfirmDeleteAndLoad} variant="contained" color="error" size="small" sx={{ fontSize: '0.75rem' }}>
+                        {importConflictType === 'same_file' ? 'Reiniciar' : 'Deletar Registros'}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -264,14 +266,14 @@ export default function Main() {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancelContinue} color="inherit">
+                    <Button onClick={handleCancelContinue} color="inherit" size="small" sx={{ fontSize: '0.75rem' }}>
                         Cancelar
                     </Button>
-                    <Button onClick={handleStartFromBeginning} variant="outlined" color="warning">
-                        Começar do Início
+                    <Button onClick={handleStartFromBeginning} variant="outlined" color="warning" size="small" sx={{ fontSize: '0.75rem' }}>
+                        Reiniciar
                     </Button>
-                    <Button onClick={handleContinueFromLast} variant="contained" color="primary">
-                        Continuar do Último
+                    <Button onClick={handleContinueFromLast} variant="contained" color="primary" size="small" sx={{ fontSize: '0.75rem' }}>
+                        Continuar
                     </Button>
                 </DialogActions>
             </Dialog>
