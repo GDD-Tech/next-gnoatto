@@ -2,11 +2,11 @@ import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, But
 import VehicleItemList from "../video-player/VehicleItemList";
 import { getVehicleData } from "@/utils/staticVehicles";
 
-export default function NewVehicleModal({ isOpen = false, onClose = () => {}, handleVehicleClick = () => {}, handleDirection = () => {}, leftDirection = '', rightDirection = ''}) {
+export default function NewVehicleModal({ isOpen = false, onClose = () => { }, handleVehicleClick = () => { }, handleDirection = () => { }, leftDirection = '', rightDirection = '' }) {
     return (
         <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="lg">
             <DialogTitle>
-                <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold' }}>Painel de Veiculos</Typography>
+                <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold' }}>Painel de Veículos</Typography>
             </DialogTitle>
             <DialogContent dividers>
                 <Box sx={{ p: 1, maxWidth: '90vw' }}>

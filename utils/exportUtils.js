@@ -79,7 +79,7 @@ export function exportVehicles(vehicleList, serviceTitle = 'sem_titulo', downloa
 
   // Convert to CSV string
   const csv = csvRows.map(row =>
-    row.map(cell => `"${String(cell).replace(/"/g, '""')}"` ).join(',')
+    row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
   ).join('\n');
 
   // Prepend UTF-8 BOM so Excel on Windows recognizes accents/cedilla correctly
@@ -87,7 +87,7 @@ export function exportVehicles(vehicleList, serviceTitle = 'sem_titulo', downloa
 
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
-  const filename = `${sanitizedTitle}_vehicle_count_${ts}.csv`;
+  const filename = `${sanitizedTitle}_contagem_veiculos_${ts}.csv`;
 
   if (!downloadNow) {
     return { content: csvWithBOM, filename };
@@ -225,7 +225,7 @@ export function exportAxles(vehicleList, serviceTitle = 'sem_titulo', downloadNo
 
   // Convert to CSV string
   const csv = csvRows.map(row =>
-    row.map(cell => `"${String(cell).replace(/"/g, '""')}"` ).join(',')
+    row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
   ).join('\n');
 
   // Prepend UTF-8 BOM so Excel on Windows recognizes accents/cedilla correctly
@@ -233,7 +233,7 @@ export function exportAxles(vehicleList, serviceTitle = 'sem_titulo', downloadNo
 
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
-  const filename = `${sanitizedTitle}_axle_count_${ts}.csv`;
+  const filename = `${sanitizedTitle}_contagem_eixos_${ts}.csv`;
 
   if (!downloadNow) {
     return { content: csvWithBOM, filename };

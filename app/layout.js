@@ -12,13 +12,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Next Gnoatto",
-  description: "Next.js Gnoatto Application",
+  title: "Contador de veículos - Gnoatto",
+  description: "Contador de veículos",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Next Gnoatto",
+    title: "Contador de veículos - Gnoatto",
   },
 };
 

@@ -125,6 +125,17 @@ export default function Mp4Player(props) {
       } else {
         setStoredVehicles(JSON.parse(stored));
       }
+
+      // Sync startDateTime with localStorage in case it was reset
+      const currentFileName = localStorage.getItem('currentFileName');
+      if (currentFileName) {
+        const key = `startDateTime_${currentFileName}`;
+        const savedDateTime = localStorage.getItem(key);
+        if (!savedDateTime) {
+          setStartDateTime(null);
+          setCurrentDateTime('');
+        }
+      }
     }
   }, [props.clearVehiclesFlag]);
 
@@ -179,7 +190,7 @@ export default function Mp4Player(props) {
           // Get the last vehicle's videoTime
           const lastVehicle = vehicles[vehicles.length - 1];
           const videoTime = lastVehicle.videoTime || 0;
-          
+
           if (videoTime > 0) {
             // Set video to that time
             videoRef.current.currentTime = videoTime;
@@ -452,13 +463,13 @@ export default function Mp4Player(props) {
       if (currentFileName) {
         localStorage.removeItem(`startDateTime_${currentFileName}`);
       }
-      
+
       setStoredVehicles([]);
       setServiceTitle('');
       setLeftDirection('');
       setRightDirection('');
       setStartDateTime(null);
-      
+
       setCompleteServiceOpen(false);
       handleToastMessage("Serviço completado com sucesso!", "success");
     } catch (error) {
@@ -471,27 +482,23 @@ export default function Mp4Player(props) {
     <>
       <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', p: 1 }}>
         <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
-          <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold', mb: 2 }}>
-            Player de Vídeo MP4
-          </Typography>
-
           {/* Titulo do Serviço - Acima das direções */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', mb: 1 }}>
+          <Box sx={{ mb: 1 }}>
+            <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', fontSize: '1.2rem' }}>
               Titulo do Serviço
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <TextField
-                label="Titulo do Serviço"
                 color="primary"
                 size="small"
+                placeholder="Insira o titulo do serviço"
                 focused
                 value={serviceTitle}
                 onChange={(e) => setServiceTitle(e.target.value)}
                 fullWidth
               />
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 color="success"
                 onClick={handleCompleteService}
                 disabled={!serviceTitle || storedVehicles.length === 0}
@@ -503,13 +510,14 @@ export default function Mp4Player(props) {
           </Box>
 
           {/* Direção - Acima do vídeo */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', mb: 1 }}>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', fontSize: '1.2rem' }}>
               Direção
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, my: 1 }}>
               <TextField
                 label="Esquerda"
+                placeholder="Insira a direção esquerda"
                 color="error"
                 size="small"
                 focused
@@ -519,6 +527,7 @@ export default function Mp4Player(props) {
               />
               <TextField
                 label="Direita"
+                placeholder="Insira a direção direita"
                 color="success"
                 size="small"
                 focused
@@ -534,7 +543,7 @@ export default function Mp4Player(props) {
 
           {/* Player de Vídeo */}
           {videoUrl && (
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 2 }}>
               <video
                 ref={videoRef}
                 src={videoUrl}
@@ -664,8 +673,8 @@ export default function Mp4Player(props) {
           onClose={() => setCompleteServiceOpen(false)}
           onConfirm={handleConfirmCompleteService}
           serviceTitle={serviceTitle}
-          vehicleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_vehicle_count_[timestamp].csv`}
-          axleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_axle_count_[timestamp].csv`}
+          vehicleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_contagem_veiculos_[timestamp].csv`}
+          axleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_contagem_eixos_[timestamp].csv`}
         />
       </Box>
     </>

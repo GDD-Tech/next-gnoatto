@@ -31,7 +31,7 @@ export default function Main() {
         const storedVehicles = localStorage.getItem('vehicleList');
         const storedFileName = localStorage.getItem('currentFileName');
         const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
-        
+
         // Compare with localStorage value instead of state (handles page reload case)
         if (hasRecords) {
             if (storedFileName && filename !== storedFileName) {
@@ -40,15 +40,15 @@ export default function Main() {
                 setImportConflictType('different_file');
                 setShowConfirmDialog(true);
             } else if (filename === storedFileName) {
-               // Same file, existing records -> Ask to continue from last
-               setPendingFileData({ result, filename, type: 'zip' });
-               setImportConflictType('same_file');
-               setShowContinueDialog(true);
+                // Same file, existing records -> Ask to continue from last
+                setPendingFileData({ result, filename, type: 'zip' });
+                setImportConflictType('same_file');
+                setShowContinueDialog(true);
             } else {
-                 // Should ideally not happen if hasRecords is true but no storedFileName, consider as different
-                 setPendingFileData({ result, filename, type: 'zip' });
-                 setImportConflictType('different_file');
-                 setShowConfirmDialog(true);
+                // Should ideally not happen if hasRecords is true but no storedFileName, consider as different
+                setPendingFileData({ result, filename, type: 'zip' });
+                setImportConflictType('different_file');
+                setShowConfirmDialog(true);
             }
         } else {
             // Load directly
@@ -158,7 +158,7 @@ export default function Main() {
         if (typeof window === 'undefined') return;
         localStorage.removeItem('vehicleList');
         setClearVehiclesFlag(prev => prev + 1);
-        
+
         if (pendingFileData) {
             if (pendingFileData.type === 'zip') {
                 applyFileData(pendingFileData.result, pendingFileData.filename, false);
@@ -179,32 +179,33 @@ export default function Main() {
 
     return (
         <>
-            <MainHeader 
-                onLoadRecords={loadZipData} 
+            <MainHeader
+                onLoadRecords={loadZipData}
                 onLoadMp4={loadMp4Data}
                 onResetRequest={() => setResetRequest(true)}
                 onClearVehicles={() => setClearVehiclesFlag(prev => prev + 1)}
+                currentFileName={currentFileName}
             />
             {mode === 'zip' ? (
-                <ImageLoader 
-                    loadedRecords={registros} 
-                    loadedImages={imagens} 
-                    resetRequest={resetRequest} 
-                    onResetHandled={() => setResetRequest(false)} 
+                <ImageLoader
+                    loadedRecords={registros}
+                    loadedImages={imagens}
+                    resetRequest={resetRequest}
+                    onResetHandled={() => setResetRequest(false)}
                     clearVehiclesFlag={clearVehiclesFlag}
                     fileName={currentFileName}
                     continueFromLast={continueFromLast}
                 />
             ) : (
-                <Mp4Player 
+                <Mp4Player
                     videoFile={videoFile}
-                    resetRequest={resetRequest} 
-                    onResetHandled={() => setResetRequest(false)} 
+                    resetRequest={resetRequest}
+                    onResetHandled={() => setResetRequest(false)}
                     clearVehiclesFlag={clearVehiclesFlag}
                     continueFromLast={continueFromLast}
                 />
             )}
-            
+
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onClose={handleCancelLoad}>
                 <DialogTitle>

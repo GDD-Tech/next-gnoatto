@@ -17,7 +17,7 @@ export default function VehicleItemList({ vehicleList, label, onVehicleClick, on
 
   return (
     <>
-      <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold' }}>{label}</Typography>
+      <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', fontSize: '1.2rem' }}>{label}</Typography>
 
       <div className={classes.gnoVehicleList} >
         {vehicleList.map((img, index) => (

@@ -23,15 +23,16 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import Image from 'next/image';
-import logo from '@/assets/logo.webp'
+import logo from '@/assets/logo.jpg'
 import { readFolder } from "../../utils/fileReader";
 import FullScreenSpinner from '../utility/FullScreenSpinner';
+import { FileDownload, RestartAlt, UploadFile } from '@mui/icons-material';
 
 const drawerWidth = 240;
-const navItems = ['Importar Arquivo', 'Resetar...', 'Exportar Dados'];
+const navItems = [{ label: 'Importar Arquivo', icon: <UploadFile /> }, { label: 'Resetar', icon: <RestartAlt /> }, { label: 'Exportar Dados', icon: <FileDownload /> }];
 
 function MainHeader(props) {
-  const { window } = props;
+  const { window: muiWindow } = props;
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [exportMenuAnchor, setExportMenuAnchor] = React.useState(null);
@@ -172,7 +173,7 @@ function MainHeader(props) {
         const serviceTitle = localStorage.getItem('serviceTitle') || 'sem_titulo';
         // Sanitize serviceTitle for filename (remove invalid characters)
         const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
-        a.download = `${sanitizedTitle}_vehicle_count_${ts}.csv`;
+        a.download = `${sanitizedTitle}_contagem_veiculos_${ts}.csv`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -195,7 +196,7 @@ function MainHeader(props) {
         // Open submenu instead of direct export
         handleExportMenuOpen(event);
         break;
-      case 'Resetar...':
+      case 'Resetar':
         handleResetMenuOpen(event);
         break;
       case 'Importar Arquivo':
@@ -353,7 +354,7 @@ function MainHeader(props) {
         const serviceTitle = localStorage.getItem('serviceTitle') || 'sem_titulo';
         // Sanitize serviceTitle for filename (remove invalid characters)
         const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
-        a.download = `${sanitizedTitle}_axle_count_${ts}.csv`;
+        a.download = `${sanitizedTitle}_contagem_eixos_${ts}.csv`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -439,38 +440,63 @@ function MainHeader(props) {
   function handleResetCurrentService() {
     handleResetMenuClose();
     if (mobileOpen) setMobileOpen(false);
-    
-    if (typeof window !== 'undefined') {
-        setResetFileName(localStorage.getItem('currentFileName') || 'Desconhecido');
+
+    const fileName = props.currentFileName || (typeof window !== 'undefined' ? localStorage.getItem('currentFileName') : null);
+
+    if (!fileName) {
+      alert('Nenhum arquivo carregado atualmente.');
+      return;
     }
+
+    setResetFileName(fileName);
     setResetCurrentServiceDialog(true);
   }
 
   function confirmResetCurrentService() {
-    if (typeof window === 'undefined') return;
-
-    const currentFileName = localStorage.getItem('currentFileName');
-    if (!currentFileName) {
-      alert('Nenhum arquivo carregado atualmente.');
+    const targetName = resetFileName?.trim();
+    if (!targetName || targetName === 'Desconhecido') {
+      alert('Nenhum arquivo válido selecionado para reset.');
       setResetCurrentServiceDialog(false);
       return;
     }
-    // ... resto da função
+
     const raw = localStorage.getItem('vehicleList');
     if (!raw) {
-      alert('Nenhum registro para resetar.');
+      alert('Nenhum registro encontrado no sistema.');
       setResetCurrentServiceDialog(false);
       return;
     }
 
-    const list = JSON.parse(raw);
-    const filteredList = list.filter(v => v.fileName !== currentFileName);
-    
-    localStorage.setItem('vehicleList', JSON.stringify(filteredList));
-    setResetCurrentServiceDialog(false);
-    
-    if (typeof props.onClearVehicles === 'function') {
-      props.onClearVehicles();
+    try {
+      const list = JSON.parse(raw);
+      if (!Array.isArray(list)) {
+        localStorage.setItem('vehicleList', JSON.stringify([]));
+        if (typeof props.onClearVehicles === 'function') props.onClearVehicles();
+        setResetCurrentServiceDialog(false);
+        return;
+      }
+
+      const initialCount = list.length;
+      const filteredList = list.filter(v =>
+        (v.fileName || '').trim().toLowerCase() !== targetName.toLowerCase()
+      );
+
+      if (filteredList.length === initialCount) {
+        alert('Nenhum registro encontrado especificamente para o arquivo: ' + targetName);
+      } else {
+        localStorage.setItem('vehicleList', JSON.stringify(filteredList));
+        // Also clear start date time metadata for this file
+        localStorage.removeItem(`startDateTime_${targetName}`);
+
+        if (typeof props.onClearVehicles === 'function') {
+          props.onClearVehicles();
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao resetar contagem:', e);
+      alert('Ocorreu um erro ao processar os dados salvos.');
+    } finally {
+      setResetCurrentServiceDialog(false);
     }
   }
 
@@ -493,18 +519,18 @@ function MainHeader(props) {
       <Divider />
       <List>
         {navItems.map((item) => (
-          item === 'Exportar Dados' ? (
-            <React.Fragment key={item}>
+          item.label === 'Exportar Dados' ? (
+            <React.Fragment key={item.label}>
               <ListItem disablePadding>
-                <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleNavClick(item, e)}>
-                  <ListItemText primary={item} />
+                <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleNavClick(item.label, e)}>
+                  <ListItemText primary={item.label} />
                 </ListItemButton>
               </ListItem>
             </React.Fragment>
           ) : (
-            <ListItem key={item} disablePadding>
-              <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleNavClick(item, e)}>
-                <ListItemText primary={item} />
+            <ListItem key={item.label} disablePadding>
+              <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleNavClick(item.label, e)}>
+                <ListItemText primary={item.label} />
               </ListItemButton>
             </ListItem>
           )
@@ -513,7 +539,7 @@ function MainHeader(props) {
     </Box>
   );
 
-  const container = window !== undefined ? () => window().document.body : undefined;
+  const container = muiWindow !== undefined ? () => muiWindow().document.body : undefined;
 
   return (
     <>
@@ -530,24 +556,28 @@ function MainHeader(props) {
             >
               <MenuIcon />
             </IconButton>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
-            >
+            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, gap: 3 }}>
               <Image src={logo} width={55} alt='logo' />
-            </Typography>
+              <Box display='flex' flexDirection='column' justifyContent={'flex-start'} alignItems={'flex-start'}>
+                <Typography variant="h2" fontSize={18} fontWeight={'bold'}>
+                  Contador de Veículos
+                </Typography>
+                <Typography variant="h4" fontSize={12} fontWeight={500} letterSpacing={0.5}>
+                  Gnoatto Botoni
+                </Typography>
+              </Box>
+            </Box>
             <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
               {navItems.map((item) => (
-                item === 'Importar Arquivo' ? (
-                  <React.Fragment key={item}>
-                    <Button sx={{ color: '#fff' }} onClick={(e) => handleNavClick(item, e)}>
-                      {item}
+                item.label === 'Importar Arquivo' ? (
+                  <React.Fragment key={item.label}>
+                    <Button sx={{ color: '#fff' }} startIcon={item.icon} onClick={(e) => handleNavClick(item.label, e)}>
+                      {item.label}
                     </Button>
                   </React.Fragment>
                 ) : (
-                  <Button key={item} sx={{ color: '#fff' }} onClick={(e) => handleNavClick(item, e)}>
-                    {item}
+                  <Button key={item.label} sx={{ color: '#fff' }} startIcon={item.icon} onClick={(e) => handleNavClick(item.label, e)}>
+                    {item.label}
                   </Button>
                 )
               ))}
@@ -576,8 +606,8 @@ function MainHeader(props) {
               open={Boolean(resetMenuAnchor)}
               onClose={handleResetMenuClose}
             >
-              <MenuItem onClick={handleResetTotal}>Contagem Total</MenuItem>
-              <MenuItem onClick={handleResetCurrentService}>Serviço Atual</MenuItem>
+              <MenuItem onClick={handleResetTotal}>Serviço Total</MenuItem>
+              <MenuItem onClick={handleResetCurrentService}>Contagem Atual</MenuItem>
             </Menu>
             {/* Hidden file inputs */}
             <input
@@ -609,12 +639,12 @@ function MainHeader(props) {
             {drawer}
           </Drawer>
         </nav>
-      </Box>
+      </Box >
       <FullScreenSpinner open={loading} />
-      
+
       {/* Reset Current Service Confirmation Dialog */}
       <Dialog open={resetCurrentServiceDialog} onClose={cancelResetCurrentService}>
-        <DialogTitle>Confirmar Reset do Serviço Atual</DialogTitle>
+        <DialogTitle>Confirmar Reset da Contagem Atual</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Tem certeza que deseja remover todos os registros do arquivo atual?
