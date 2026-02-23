@@ -30,7 +30,7 @@ export function exportVehicles(vehicleList, serviceTitle = 'sem_titulo', downloa
     // Calculate 15-minute bucket
     const bucket = Math.floor(min / 15) * 15;
     const nextBucket = (bucket + 15) % 60;
-    const nextHour = bucket + 15 >= 60 ? hour + 1 : hour;
+    const nextHour = (bucket + 15 >= 60 ? hour + 1 : hour) % 24;
     const timeRange = `${String(hour).padStart(2, '0')}:${String(bucket).padStart(2, '0')} - ${String(nextHour).padStart(2, '0')}:${String(nextBucket).padStart(2, '0')}`;
 
     if (!grouped[date]) grouped[date] = {};
@@ -176,7 +176,7 @@ export function exportAxles(vehicleList, serviceTitle = 'sem_titulo', downloadNo
     // Calculate 15-minute bucket
     const bucket = Math.floor(min / 15) * 15;
     const nextBucket = (bucket + 15) % 60;
-    const nextHour = bucket + 15 >= 60 ? hour + 1 : hour;
+    const nextHour = (bucket + 15 >= 60 ? hour + 1 : hour) % 24;
     const timeRange = `${String(hour).padStart(2, '0')}:${String(bucket).padStart(2, '0')} - ${String(nextHour).padStart(2, '0')}:${String(nextBucket).padStart(2, '0')}`;
 
     if (!grouped[date]) grouped[date] = {};
