@@ -246,11 +246,11 @@ export default function Main() {
                     <Button onClick={handleCancelLoad} color="inherit" size="small" sx={{ fontSize: '0.75rem' }}>
                         Cancelar
                     </Button>
-                    <Button onClick={handleKeepDataAndLoad} variant="outlined" color="primary" size="small" sx={{ fontSize: '0.75rem' }}>
-                        {importConflictType === 'same_file' ? 'Manter Dados' : 'Manter Contagem'}
-                    </Button>
                     <Button onClick={handleConfirmDeleteAndLoad} variant="contained" color="error" size="small" sx={{ fontSize: '0.75rem' }}>
                         {importConflictType === 'same_file' ? 'Reiniciar' : 'Deletar Registros'}
+                    </Button>
+                    <Button onClick={handleKeepDataAndLoad} variant="contained" color="primary" size="small" sx={{ fontSize: '0.75rem' }}>
+                        {importConflictType === 'same_file' ? 'Manter Dados' : 'Manter Contagem'}
                     </Button>
                 </DialogActions>
             </Dialog>
