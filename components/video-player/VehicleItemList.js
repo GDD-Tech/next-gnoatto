@@ -1,9 +1,10 @@
 import { Button, Typography, Box, Tooltip } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import Image from "next/image";
+import { memo } from 'react';
 import classes from '@/components/video-player/VehicleItemList.module.css'
 
-export default function VehicleItemList({ vehicleList, label, onVehicleClick, onHandleDirection, isNew }) {
+function VehicleItemList({ vehicleList, label, onVehicleClick, onHandleDirection, isNew }) {
 
   function handleDirectionClick(direction, vehicle) {
     onHandleDirection(label, direction, vehicle, 0, isNew);
@@ -89,3 +90,5 @@ export default function VehicleItemList({ vehicleList, label, onVehicleClick, on
     </>
   );
 }
+
+export default memo(VehicleItemList);

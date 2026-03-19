@@ -1,6 +1,6 @@
 'use client'
 import { Box, Button, TextField, Typography, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -177,7 +177,11 @@ export default function Mp4Player(props) {
       size: file.size,
       lastModified: file.lastModified
     };
-  }, [props.videoFile, videoUrl]);
+    // Nota: videoUrl foi removido das dependências intencionalmente para evitar
+    // um loop de re-execução. A lógica de comparação via lastFileDataRef já
+    // garante que um novo URL só é criado quando o arquivo realmente muda.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.videoFile]);
 
   // Continue from last video time when flag is set
   useEffect(() => {
@@ -206,6 +210,10 @@ export default function Mp4Player(props) {
       if (videoUrlRef.current) {
         URL.revokeObjectURL(videoUrlRef.current);
       }
+      // Cancela qualquer frame de animação pendente
+      if (timeUpdateRafRef.current) {
+        cancelAnimationFrame(timeUpdateRafRef.current);
+      }
     };
   }, []);
 
@@ -224,7 +232,7 @@ export default function Mp4Player(props) {
     return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
   };
 
-  const calculateCurrentDateTime = () => {
+  const calculateCurrentDateTime = useCallback(() => {
     if (!startDateTime || !videoRef.current) return '';
 
     // startDateTime is now a dayjs object
@@ -232,7 +240,7 @@ export default function Mp4Player(props) {
     const currentDate = startDateTime.add(videoTimeSeconds, 'second');
 
     return currentDate.format('DD/MM/YYYY HH:mm:ss');
-  };
+  }, [startDateTime]);
 
   const handlePlayPause = useCallback(() => {
     if (!videoRef.current) return;
@@ -290,12 +298,23 @@ export default function Mp4Player(props) {
     }
   };
 
-  const handleTimeUpdate = () => {
+  // Ref para controlar o throttle do onTimeUpdate (evita re-renders excessivos a ~4x/seg)
+  const timeUpdateRafRef = useRef(null);
+
+  const handleTimeUpdate = useCallback(() => {
     if (!isPaused && startDateTime) {
-      const calculatedDateTime = calculateCurrentDateTime();
-      setCurrentDateTime(calculatedDateTime);
+      // Cancela o frame anterior se ainda não foi processado
+      if (timeUpdateRafRef.current) {
+        cancelAnimationFrame(timeUpdateRafRef.current);
+      }
+      // Agenda a atualização no próximo frame de animação disponível
+      timeUpdateRafRef.current = requestAnimationFrame(() => {
+        const calculatedDateTime = calculateCurrentDateTime();
+        setCurrentDateTime(calculatedDateTime);
+        timeUpdateRafRef.current = null;
+      });
     }
-  };
+  }, [isPaused, startDateTime, calculateCurrentDateTime]);
 
   const handleDirection = (label, direction, vehicle, axles, isNew) => {
     // Always calculate current date/time from video
@@ -365,7 +384,7 @@ export default function Mp4Player(props) {
     return true;
   }
 
-  const handleVehicleClick = (direction, label, vehicle, isNew) => {
+  const handleVehicleClick = useCallback((direction, label, vehicle, isNew) => {
     // Calculate current time when clicking vehicle
     if (!startDateTime || !videoRef.current) {
       handleToastMessage("Selecione uma data/hora inicial!", "warning");
@@ -388,15 +407,15 @@ export default function Mp4Player(props) {
     setVehicleDirection(direction);
     setModalOpen(true);
     setIsNewVehicle(isNew);
-  };
+  }, [startDateTime]);
 
-  const handleChangeLeft = (event) => {
+  const handleChangeLeft = useCallback((event) => {
     setLeftDirection(event.target.value);
-  };
+  }, []);
 
-  const handleChangeRight = (event) => {
+  const handleChangeRight = useCallback((event) => {
     setRightDirection(event.target.value);
-  };
+  }, []);
 
   const resetToastMessage = useCallback(() => {
     setToastMessage(null);
@@ -547,6 +566,7 @@ export default function Mp4Player(props) {
               <video
                 ref={videoRef}
                 src={videoUrl}
+                preload="metadata"
                 controls
                 onTimeUpdate={handleTimeUpdate}
                 onPause={() => {
