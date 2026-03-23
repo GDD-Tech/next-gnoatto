@@ -1,31 +1,35 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import * as React from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
-export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext }) {
+export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const prevCountRef = useRef(0);
-  const prevFirstRef = useRef(null);
-
+  // Efeito 1: Sempre que uma nova carga for iniciada (loadVersion muda),
+  // reseta para o primeiro registro. Este efeito roda ANTES do Efeito 2.
   useEffect(() => {
-    const prevCount = prevCountRef.current || 0;
-    const prevFirst = prevFirstRef.current;
-    const currCount = registros ? registros.length : 0;
-    const currFirst = registros && registros[0] ? registros[0].image_path : null;
+    if (!registros || registros.length === 0) return;
+    setCurrentIndex(0);
+    if (typeof onVehicleSelect === 'function') onVehicleSelect(registros[0]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadVersion]);
 
-    const isNewLoad = (prevCount === 0 && currCount > 0) || (currFirst && prevFirst !== currFirst);
+  // Efeito 2: Se houver um startTrackId (continuar de onde parou),
+  // sobrescreve o índice definido pelo Efeito 1. Por ser declarado após,
+  // React garante que roda depois do Efeito 1 na mesma fase de commits.
+  useEffect(() => {
+    if (!startTrackId || !registros || registros.length === 0) return;
+    const foundIndex = registros.findIndex(r => String(r.track_id) === String(startTrackId));
+    if (foundIndex === -1) return;
+    // Avança um após o último tratado (próximo a processar)
+    const nextIndex = Math.min(foundIndex + 1, registros.length - 1);
+    setCurrentIndex(nextIndex);
+    if (typeof onVehicleSelect === 'function') onVehicleSelect(registros[nextIndex]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startTrackId, loadVersion]);
 
-    if (isNewLoad) {
-      setCurrentIndex(0);
-      if (typeof onVehicleSelect === 'function') onVehicleSelect(registros[0]);
-    }
-
-    prevCountRef.current = currCount;
-    prevFirstRef.current = currFirst;
-  }, [registros, onVehicleSelect]);
 
   const getStatus = (registro) => {
     if (!registro?.track_id) return "Pendente";

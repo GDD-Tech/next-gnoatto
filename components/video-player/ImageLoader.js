@@ -1,6 +1,6 @@
 'use client'
 import { Box, Button, TextField, Typography } from "@mui/material";
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import AddIcon from '@mui/icons-material/Add';
 import { getVehicleData } from "@/utils/staticVehicles";
@@ -29,6 +29,26 @@ export default function ImageLoader(props) {
   const [vehicleDirection, setVehicleDirection] = useState('none');
   const [isNewVehicle, setIsNewVehicle] = useState(false);
   const [completeServiceOpen, setCompleteServiceOpen] = useState(false);
+
+  // Calcula o último trackId tratado de forma síncrona durante o render,
+  // garantindo que ImportFile já receba o valor correto antes de rodar seus efeitos.
+  const startTrackId = useMemo(() => {
+    if (!props.continueFromLast) return null;
+    if (typeof window === 'undefined') return null;
+    const storedVehiclesRaw = localStorage.getItem('vehicleList');
+    if (!storedVehiclesRaw) return null;
+    try {
+      const vehicles = JSON.parse(storedVehiclesRaw);
+      const lastVehicleWithTrackId = vehicles
+        .filter(v => v.trackId && v.trackId !== '')
+        .sort((a, b) => parseInt(b.trackId) - parseInt(a.trackId))[0];
+      return lastVehicleWithTrackId?.trackId ?? null;
+    } catch {
+      return null;
+    }
+  // props.loadVersion garante recomputo mesmo quando continueFromLast já era true
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.continueFromLast, props.loadVersion]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -95,25 +115,15 @@ export default function ImageLoader(props) {
   // Continue from last record when flag is set
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (props.continueFromLast && props.loadedRecords && props.loadedRecords.length > 0) {
-      // Find the last vehicle with a trackId
-      const storedVehicles = localStorage.getItem('vehicleList');
-      if (storedVehicles) {
-        const vehicles = JSON.parse(storedVehicles);
-        const lastVehicleWithTrackId = vehicles
-          .filter(v => v.trackId && v.trackId !== '')
-          .sort((a, b) => parseInt(b.trackId) - parseInt(a.trackId))[0];
-
-        if (lastVehicleWithTrackId) {
-          // Find this vehicle in loaded records
-          const record = props.loadedRecords.find(r => r.track_id === lastVehicleWithTrackId.trackId);
-          if (record) {
-            setSelectedVehicle(record);
-          }
-        }
+    if (props.continueFromLast && props.loadedRecords && props.loadedRecords.length > 0 && startTrackId) {
+      // Encontra o registro correspondente ao último trackId tratado
+      const record = props.loadedRecords.find(r => String(r.track_id) === String(startTrackId));
+      if (record) {
+        setSelectedVehicle(record);
       }
     }
-  }, [props.continueFromLast, props.loadedRecords]);
+  }, [props.continueFromLast, props.loadedRecords, startTrackId]);
+
 
   const handleDirection = (label, direction, vehicle, axles, isNew) => {
     const object = {
@@ -294,7 +304,7 @@ export default function ImageLoader(props) {
               </Box>
             </Box>
           )}
-          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} />
+          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} />
         </Box>
         {selectedVehicle && (
           <Box sx={{ p: 0.5, maxWidth: '52vw' }}>

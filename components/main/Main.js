@@ -24,6 +24,7 @@ export default function Main() {
     const [importConflictType, setImportConflictType] = useState(null); // 'different_file' | 'same_file'
     const [showContinueDialog, setShowContinueDialog] = useState(false);
     const [continueFromLast, setContinueFromLast] = useState(false);
+    const [loadVersion, setLoadVersion] = useState(0);
 
     function loadZipData(result, filename) {
         // Check if there's a different file being loaded and records exist
@@ -67,6 +68,7 @@ export default function Main() {
             localStorage.setItem('currentFileName', filename);
         }
         setContinueFromLast(continueFromLast);
+        setLoadVersion(v => v + 1); // Sinaliza nova carga para componentes filhos
         setMode('zip');
     }
 
@@ -195,6 +197,7 @@ export default function Main() {
                     clearVehiclesFlag={clearVehiclesFlag}
                     fileName={currentFileName}
                     continueFromLast={continueFromLast}
+                    loadVersion={loadVersion}
                 />
             ) : (
                 <Mp4Player
