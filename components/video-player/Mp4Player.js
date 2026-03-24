@@ -566,7 +566,7 @@ export default function Mp4Player(props) {
               <video
                 ref={videoRef}
                 src={videoUrl}
-                preload="metadata"
+                preload="auto"
                 controls
                 onTimeUpdate={handleTimeUpdate}
                 onPause={() => {
