@@ -60,14 +60,17 @@ export function exportVehicles(vehicleList, serviceTitle = 'sem_titulo', downloa
   // Add header row
   csvRows.push(['Data', 'Hora', 'Direção', ...vehicleTypes]);
 
-  // Add data rows: for each date, for each direction (fromTo), for each time slot
-  dates.forEach((date) => {
-    const directions = Object.keys(grouped[date]).sort();
-    directions.forEach((dir) => {
+  // Collect all unique directions across all dates
+  const allDirections = [...new Set(dates.flatMap((date) => Object.keys(grouped[date])))].sort();
+
+  // Add data rows: for each direction, for each date, for each time slot
+  allDirections.forEach((dir) => {
+    dates.forEach((date) => {
+      if (!grouped[date][dir]) return;
       allTimeSlots.forEach((timeRange) => {
         const row = [date, timeRange, dir];
         vehicleTypes.forEach((type) => {
-          const count = (grouped[date] && grouped[date][dir] && grouped[date][dir][timeRange] && grouped[date][dir][timeRange].counts[type])
+          const count = (grouped[date][dir][timeRange] && grouped[date][dir][timeRange].counts[type])
             ? grouped[date][dir][timeRange].counts[type]
             : 0;
           row.push(count);
@@ -206,14 +209,17 @@ export function exportAxles(vehicleList, serviceTitle = 'sem_titulo', downloadNo
   // Add header row
   csvRows.push(['Data', 'Hora', 'Direção', ...vehicleTypes]);
 
-  // Add data rows: for each date, for each direction (fromTo), for each time slot
-  dates.forEach((date) => {
-    const directions = Object.keys(grouped[date]).sort();
-    directions.forEach((dir) => {
+  // Collect all unique directions across all dates
+  const allDirections = [...new Set(dates.flatMap((date) => Object.keys(grouped[date])))].sort();
+
+  // Add data rows: for each direction, for each date, for each time slot
+  allDirections.forEach((dir) => {
+    dates.forEach((date) => {
+      if (!grouped[date][dir]) return;
       allTimeSlots.forEach((timeRange) => {
         const row = [date, timeRange, dir];
         vehicleTypes.forEach((type) => {
-          const axleCount = (grouped[date] && grouped[date][dir] && grouped[date][dir][timeRange] && grouped[date][dir][timeRange].axleCounts[type])
+          const axleCount = (grouped[date][dir][timeRange] && grouped[date][dir][timeRange].axleCounts[type])
             ? grouped[date][dir][timeRange].axleCounts[type]
             : 0;
           row.push(axleCount);
