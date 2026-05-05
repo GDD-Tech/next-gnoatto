@@ -617,6 +617,32 @@ export default function Mp4Player(props) {
                 <MenuItem value={6}>6x</MenuItem>
               </Select>
             </FormControl>
+
+            <Button
+              variant="contained"
+              color="primary"
+              disableElevation
+              disabled={!videoUrl}
+              onClick={() => {
+                const video = videoRef.current;
+                if (!video) return;
+                const targetTime = video.currentTime + 1;
+
+                const onLoadedMetadata = () => {
+                  video.removeEventListener('loadedmetadata', onLoadedMetadata);
+                  video.currentTime = targetTime;
+                  video.playbackRate = playbackSpeed;
+                  video.play().then(() => setIsPaused(false)).catch(() => { });
+                };
+
+                video.addEventListener('loadedmetadata', onLoadedMetadata);
+                video.load();
+              }}
+
+              sx={{ textTransform: 'none', flex: '0 0 auto', whiteSpace: 'nowrap', alignSelf: 'center' }}
+            >
+              PULAR 1s
+            </Button>
           </Box>
         </Box>
 
