@@ -4,7 +4,7 @@ import * as React from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
-export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion }) {
+export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion, onFolderComplete }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Efeito 1: Sempre que uma nova carga for iniciada (loadVersion muda),
@@ -46,12 +46,23 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
     }
   }, [registros, onVehicleSelect, currentIndex]);
 
+  // Used by auto-advance after classification — calls onFolderComplete when at the last frame
+  const handleAutoAdvance = useCallback(() => {
+    if (registros && currentIndex + 1 < registros.length) {
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      if (typeof onVehicleSelect === 'function') onVehicleSelect(registros[nextIndex]);
+    } else if (typeof onFolderComplete === 'function') {
+      onFolderComplete();
+    }
+  }, [registros, onVehicleSelect, currentIndex, onFolderComplete]);
+
   useEffect(() => {
     if (typeof registerNext === 'function') {
-      registerNext(handleNext);
+      registerNext(handleAutoAdvance);
       return () => registerNext(null);
     }
-  }, [registerNext, handleNext]);
+  }, [registerNext, handleAutoAdvance]);
 
   const handlePrev = useCallback(() => {
     if (currentIndex - 1 >= 0) {

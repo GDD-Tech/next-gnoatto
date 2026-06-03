@@ -25,6 +25,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Image from 'next/image';
 import logo from '@/assets/logo.jpg'
 import { readFolder } from "../../utils/fileReader";
+import { readProjectFolder } from "../../utils/projectReader";
 import FullScreenSpinner from '../utility/FullScreenSpinner';
 import { FileDownload, RestartAlt, UploadFile } from '@mui/icons-material';
 
@@ -41,6 +42,7 @@ function MainHeader(props) {
   const [resetCurrentServiceDialog, setResetCurrentServiceDialog] = React.useState(false);
   const folderInputRef = React.useRef(null);
   const mp4InputRef = React.useRef(null);
+  const projectInputRef = React.useRef(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen((prevState) => !prevState);
@@ -422,6 +424,30 @@ function MainHeader(props) {
     mp4InputRef.current?.click();
   };
 
+  const handleImportProject = () => {
+    handleImportMenuClose();
+    if (mobileOpen) setMobileOpen(false);
+    projectInputRef.current?.click();
+  };
+
+  async function handleProjectUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    setLoading(true);
+    setTimeout(async () => {
+      try {
+        const result = await readProjectFolder(files);
+        props.onLoadProject(result);
+      } catch (error) {
+        console.error('Erro ao carregar projeto:', error);
+        alert('Erro ao carregar projeto:\n' + error.message);
+      } finally {
+        setLoading(false);
+        if (projectInputRef.current) projectInputRef.current.value = '';
+      }
+    }, 100);
+  }
+
   function handleReset() {
     if (typeof props.onResetRequest === 'function') {
       props.onResetRequest();
@@ -599,6 +625,7 @@ function MainHeader(props) {
             >
               <MenuItem onClick={handleImportFolder}>Importar Frames</MenuItem>
               <MenuItem onClick={handleImportMp4}>Importar MP4</MenuItem>
+              <MenuItem onClick={handleImportProject}>Importar Projeto</MenuItem>
             </Menu>
             {/* Reset submenu */}
             <Menu
@@ -620,6 +647,7 @@ function MainHeader(props) {
               onChange={handleFolderUpload}
             />
             <input ref={mp4InputRef} type="file" accept=".mp4,video/mp4" style={{ display: 'none' }} onChange={handleMp4Upload} />
+            <input ref={projectInputRef} type="file" webkitdirectory="" directory="" multiple style={{ display: 'none' }} onChange={handleProjectUpload} />
           </Toolbar>
         </AppBar>
         <nav>

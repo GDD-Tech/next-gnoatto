@@ -15,6 +15,8 @@ import CompleteServiceModal from "../modal/CompleteServiceModal";
 import { exportAsZip } from "@/utils/exportUtils";
 
 export default function ImageLoader(props) {
+  // props.projectConfig: { serviceTitle, leftDirection, rightDirection } — set when in project mode
+  // props.onFolderEnd: called when the last frame of this folder is classified
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [vehicleDetails, setVehicleDetails] = useState(null);
   const [serviceTitle, setServiceTitle] = useState('');
@@ -95,6 +97,20 @@ export default function ImageLoader(props) {
       localStorage.setItem('rightDirection', rightDirection);
     }
   }, [rightDirection]);
+
+  // Apply project config (serviceTitle, directions) when entering project mode or changing folders
+  useEffect(() => {
+    if (!props.projectConfig) return;
+    const { serviceTitle: title, leftDirection: left, rightDirection: right } = props.projectConfig;
+    if (title) setServiceTitle(title);
+    if (left) setLeftDirection(left);
+    if (right) setRightDirection(right);
+    if (typeof window !== 'undefined') {
+      if (title) localStorage.setItem('serviceTitle', title);
+      if (left) localStorage.setItem('leftDirection', left);
+      if (right) localStorage.setItem('rightDirection', right);
+    }
+  }, [props.projectConfig]);
 
   // Reload storedVehicles when clearVehiclesFlag changes
   useEffect(() => {
@@ -304,7 +320,7 @@ export default function ImageLoader(props) {
               </Box>
             </Box>
           )}
-          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} />
+          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} onFolderComplete={props.onFolderEnd} />
         </Box>
         {selectedVehicle && (
           <Box sx={{ p: 0.5, maxWidth: '52vw' }}>

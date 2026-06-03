@@ -1,8 +1,9 @@
 'use client'
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import MainHeader from "@/components/main-header/MainHeader";
 import ImageLoader from "@/components/video-player/ImageLoader";
 import Mp4Player from "@/components/video-player/Mp4Player";
+import ProjectNavigation from "@/components/project-navigation/ProjectNavigation";
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography } from '@mui/material';
 
 export default function Main() {
@@ -12,7 +13,6 @@ export default function Main() {
     const [imagens, setImagens] = useState({});
     const [resetRequest, setResetRequest] = useState(false);
     const [currentFileName, setCurrentFileName] = useState(() => {
-        // Load filename from localStorage on mount (only on client-side)
         if (typeof window !== 'undefined') {
             return localStorage.getItem('currentFileName') || null;
         }
@@ -21,38 +21,60 @@ export default function Main() {
     const [pendingFileData, setPendingFileData] = useState(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [clearVehiclesFlag, setClearVehiclesFlag] = useState(0);
-    const [importConflictType, setImportConflictType] = useState(null); // 'different_file' | 'same_file'
+    const [importConflictType, setImportConflictType] = useState(null); // 'different_file' | 'same_file' | 'project'
     const [showContinueDialog, setShowContinueDialog] = useState(false);
     const [continueFromLast, setContinueFromLast] = useState(false);
     const [loadVersion, setLoadVersion] = useState(0);
 
+    // Project mode state
+    const [projectData, setProjectData] = useState(null);
+    const [currentFolderIndex, setCurrentFolderIndex] = useState(0);
+
+    // Derived values: in project mode these override the regular state
+    const isProjectMode = Boolean(projectData);
+    const currentFolder = isProjectMode ? projectData.folders[currentFolderIndex] : null;
+
+    const effectiveMode = isProjectMode
+        ? (currentFolder?.type === 'video' ? 'mp4' : 'zip')
+        : mode;
+    const effectiveVideoFile = isProjectMode ? currentFolder?.videoFile : videoFile;
+    const effectiveRegistros = isProjectMode ? (currentFolder?.records ?? []) : registros;
+    const effectiveImagens = isProjectMode ? (currentFolder?.images ?? {}) : imagens;
+    const effectiveFileName = isProjectMode ? currentFolder?.name : currentFileName;
+
+    const projectConfig = useMemo(() => {
+        if (!isProjectMode || !projectData) return null;
+        return {
+            serviceTitle: projectData.serviceTitle,
+            leftDirection: projectData.leftDirection,
+            rightDirection: projectData.rightDirection,
+            startDateTime: currentFolder?.startDateTime ?? null,
+        };
+    }, [isProjectMode, projectData, currentFolder]);
+
+    // ─── Regular file loading ────────────────────────────────────────────────
+
     function loadZipData(result, filename) {
-        // Check if there's a different file being loaded and records exist
         if (typeof window === 'undefined') return;
         const storedVehicles = localStorage.getItem('vehicleList');
         const storedFileName = localStorage.getItem('currentFileName');
         const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
 
-        // Compare with localStorage value instead of state (handles page reload case)
         if (hasRecords) {
             if (storedFileName && filename !== storedFileName) {
-                // Different file, existing records -> Warn to delete
                 setPendingFileData({ result, filename, type: 'zip' });
                 setImportConflictType('different_file');
                 setShowConfirmDialog(true);
             } else if (filename === storedFileName) {
-                // Same file, existing records -> Ask to continue from last
                 setPendingFileData({ result, filename, type: 'zip' });
                 setImportConflictType('same_file');
                 setShowContinueDialog(true);
             } else {
-                // Should ideally not happen if hasRecords is true but no storedFileName, consider as different
                 setPendingFileData({ result, filename, type: 'zip' });
                 setImportConflictType('different_file');
                 setShowConfirmDialog(true);
             }
         } else {
-            // Load directly
             applyFileData(result, filename, false);
         }
     }
@@ -63,12 +85,12 @@ export default function Main() {
         setRegistros(records);
         setImagens(images);
         setCurrentFileName(filename);
-        // Save filename to localStorage
+        setProjectData(null); // exit project mode
         if (typeof window !== 'undefined') {
             localStorage.setItem('currentFileName', filename);
         }
         setContinueFromLast(continueFromLast);
-        setLoadVersion(v => v + 1); // Sinaliza nova carga para componentes filhos
+        setLoadVersion(v => v + 1);
         setMode('zip');
     }
 
@@ -80,18 +102,15 @@ export default function Main() {
 
         if (hasRecords && storedFileName) {
             if (storedFileName !== file.name) {
-                // Different file - ask to delete old records
                 setImportConflictType('different_file');
                 setPendingFileData({ file, filename: file.name, type: 'mp4' });
                 setShowConfirmDialog(true);
             } else {
-                // Same file - ask to continue from last
                 setImportConflictType('same_file');
                 setPendingFileData({ file, filename: file.name, type: 'mp4' });
                 setShowContinueDialog(true);
             }
         } else {
-            // Load directly
             applyMp4Data(file, false);
         }
     }
@@ -99,24 +118,82 @@ export default function Main() {
     function applyMp4Data(file, continueFromLast = false) {
         setMode('mp4');
         setVideoFile(file);
-        // Save MP4 filename to state and localStorage
         setCurrentFileName(file.name);
+        setProjectData(null); // exit project mode
         if (typeof window !== 'undefined') {
             localStorage.setItem('currentFileName', file.name);
         }
         setContinueFromLast(continueFromLast);
     }
 
+    // ─── Project loading ─────────────────────────────────────────────────────
+
+    function loadProjectData(data) {
+        if (typeof window === 'undefined') return;
+        const storedVehicles = localStorage.getItem('vehicleList');
+        const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
+
+        if (hasRecords) {
+            setPendingFileData({ type: 'project', data });
+            setImportConflictType('project');
+            setShowConfirmDialog(true);
+        } else {
+            applyProjectData(data);
+        }
+    }
+
+    function applyProjectData(data) {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('serviceTitle', data.serviceTitle);
+            localStorage.setItem('leftDirection', data.leftDirection);
+            localStorage.setItem('rightDirection', data.rightDirection);
+            localStorage.setItem('currentFileName', data.folders[0]?.name ?? '');
+        }
+        setProjectData(data);
+        setCurrentFolderIndex(0);
+        setContinueFromLast(false);
+        setLoadVersion(v => v + 1);
+    }
+
+    function handleProjectNextFolder() {
+        if (!projectData) return;
+        if (currentFolderIndex < projectData.folders.length - 1) {
+            const nextIndex = currentFolderIndex + 1;
+            setCurrentFolderIndex(nextIndex);
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('currentFileName', projectData.folders[nextIndex]?.name ?? '');
+            }
+            setContinueFromLast(false);
+            setLoadVersion(v => v + 1);
+        }
+    }
+
+    function handleProjectPrevFolder() {
+        if (!projectData) return;
+        if (currentFolderIndex > 0) {
+            const prevIndex = currentFolderIndex - 1;
+            setCurrentFolderIndex(prevIndex);
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('currentFileName', projectData.folders[prevIndex]?.name ?? '');
+            }
+            setContinueFromLast(false);
+            setLoadVersion(v => v + 1);
+        }
+    }
+
+    // ─── Conflict dialog handlers ─────────────────────────────────────────────
+
     function handleConfirmDeleteAndLoad() {
-        // Clear existing records and filename
         if (typeof window === 'undefined') return;
         localStorage.removeItem('vehicleList');
         localStorage.removeItem('currentFileName');
-        // Notify ImageLoader to reload data from localStorage
         setClearVehiclesFlag(prev => prev + 1);
-        // Load new file
         if (pendingFileData) {
-            applyFileData(pendingFileData.result, pendingFileData.filename);
+            if (pendingFileData.type === 'project') {
+                applyProjectData(pendingFileData.data);
+            } else {
+                applyFileData(pendingFileData.result, pendingFileData.filename);
+            }
         }
         setShowConfirmDialog(false);
         setPendingFileData(null);
@@ -125,7 +202,9 @@ export default function Main() {
 
     function handleKeepDataAndLoad() {
         if (pendingFileData) {
-            if (pendingFileData.type === 'zip') {
+            if (pendingFileData.type === 'project') {
+                applyProjectData(pendingFileData.data);
+            } else if (pendingFileData.type === 'zip') {
                 applyFileData(pendingFileData.result, pendingFileData.filename);
             } else if (pendingFileData.type === 'mp4') {
                 applyMp4Data(pendingFileData.file);
@@ -156,7 +235,6 @@ export default function Main() {
     }
 
     function handleStartFromBeginning() {
-        // Clear existing records
         if (typeof window === 'undefined') return;
         localStorage.removeItem('vehicleList');
         setClearVehiclesFlag(prev => prev + 1);
@@ -184,37 +262,68 @@ export default function Main() {
             <MainHeader
                 onLoadRecords={loadZipData}
                 onLoadMp4={loadMp4Data}
+                onLoadProject={loadProjectData}
                 onResetRequest={() => setResetRequest(true)}
                 onClearVehicles={() => setClearVehiclesFlag(prev => prev + 1)}
-                currentFileName={currentFileName}
+                currentFileName={effectiveFileName}
             />
-            {mode === 'zip' ? (
-                <ImageLoader
-                    loadedRecords={registros}
-                    loadedImages={imagens}
-                    resetRequest={resetRequest}
-                    onResetHandled={() => setResetRequest(false)}
-                    clearVehiclesFlag={clearVehiclesFlag}
-                    fileName={currentFileName}
-                    continueFromLast={continueFromLast}
-                    loadVersion={loadVersion}
-                />
-            ) : (
-                <Mp4Player
-                    videoFile={videoFile}
-                    resetRequest={resetRequest}
-                    onResetHandled={() => setResetRequest(false)}
-                    clearVehiclesFlag={clearVehiclesFlag}
-                    continueFromLast={continueFromLast}
+
+            {isProjectMode && (
+                <ProjectNavigation
+                    folders={projectData.folders}
+                    currentIndex={currentFolderIndex}
+                    onPrev={handleProjectPrevFolder}
+                    onNext={handleProjectNextFolder}
                 />
             )}
 
-            {/* Confirmation Dialog */}
+            {effectiveMode === 'zip' ? (
+                <ImageLoader
+                    key={isProjectMode ? `project-folder-${currentFolderIndex}` : 'standalone'}
+                    loadedRecords={effectiveRegistros}
+                    loadedImages={effectiveImagens}
+                    resetRequest={resetRequest}
+                    onResetHandled={() => setResetRequest(false)}
+                    clearVehiclesFlag={clearVehiclesFlag}
+                    fileName={effectiveFileName}
+                    continueFromLast={continueFromLast}
+                    loadVersion={loadVersion}
+                    projectConfig={projectConfig}
+                    onFolderEnd={isProjectMode ? handleProjectNextFolder : null}
+                />
+            ) : (
+                <Mp4Player
+                    key={isProjectMode ? `project-folder-${currentFolderIndex}` : 'standalone'}
+                    videoFile={effectiveVideoFile}
+                    resetRequest={resetRequest}
+                    onResetHandled={() => setResetRequest(false)}
+                    clearVehiclesFlag={clearVehiclesFlag}
+                    continueFromLast={continueFromLast}
+                    projectConfig={projectConfig}
+                    onFolderEnd={isProjectMode ? handleProjectNextFolder : null}
+                />
+            )}
+
+            {/* Confirmation Dialog — different file or project import */}
             <Dialog open={showConfirmDialog} onClose={handleCancelLoad}>
                 <DialogTitle>
-                    {importConflictType === 'same_file' ? 'Arquivo Existente Detectado' : 'Arquivo Diferente Detectado'}
+                    {importConflictType === 'project'
+                        ? 'Importar Novo Projeto'
+                        : importConflictType === 'same_file'
+                            ? 'Arquivo Existente Detectado'
+                            : 'Arquivo Diferente Detectado'}
                 </DialogTitle>
                 <DialogContent>
+                    {importConflictType === 'project' && (
+                        <>
+                            <Typography>
+                                Você está importando um novo projeto. Existem registros de contagem salvos no sistema.
+                            </Typography>
+                            <Typography sx={{ mt: 2 }}>
+                                Deseja deletar os registros existentes ou mantê-los junto com o novo projeto?
+                            </Typography>
+                        </>
+                    )}
                     {importConflictType === 'different_file' && (
                         <>
                             <Typography>

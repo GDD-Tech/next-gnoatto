@@ -21,6 +21,8 @@ import { exportAsZip } from "@/utils/exportUtils";
 dayjs.locale('pt-br');
 
 export default function Mp4Player(props) {
+  // props.projectConfig: { serviceTitle, leftDirection, rightDirection, startDateTime } — set when in project mode
+  // props.onFolderEnd: called when the video ends in project mode
   const [videoUrl, setVideoUrl] = useState(null);
   const [startDateTime, setStartDateTime] = useState(null);
   const [currentDateTime, setCurrentDateTime] = useState('');
@@ -89,6 +91,21 @@ export default function Mp4Player(props) {
       localStorage.setItem('rightDirection', rightDirection);
     }
   }, [rightDirection]);
+
+  // Apply project config when entering project mode or changing folders
+  useEffect(() => {
+    if (!props.projectConfig) return;
+    const { serviceTitle: title, leftDirection: left, rightDirection: right, startDateTime: dt } = props.projectConfig;
+    if (title) setServiceTitle(title);
+    if (left) setLeftDirection(left);
+    if (right) setRightDirection(right);
+    if (dt) setStartDateTime(dayjs(dt));
+    if (typeof window !== 'undefined') {
+      if (title) localStorage.setItem('serviceTitle', title);
+      if (left) localStorage.setItem('leftDirection', left);
+      if (right) localStorage.setItem('rightDirection', right);
+    }
+  }, [props.projectConfig]);
 
   // Save startDateTime to localStorage whenever it changes
   useEffect(() => {
@@ -575,6 +592,7 @@ export default function Mp4Player(props) {
                   setCurrentDateTime(calculatedDateTime);
                 }}
                 onPlay={() => setIsPaused(false)}
+                onEnded={() => { if (typeof props.onFolderEnd === 'function') props.onFolderEnd(); }}
                 style={{ width: '100%', maxHeight: '600px', borderRadius: '8px' }}
               />
             </Box>
