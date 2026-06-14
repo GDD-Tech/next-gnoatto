@@ -24,76 +24,42 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import Image from 'next/image';
 import logo from '@/assets/logo.jpg'
-import { readFolder } from "../../utils/fileReader";
 import { readProjectFolder } from "../../utils/projectReader";
 import FullScreenSpinner from '../utility/FullScreenSpinner';
 import { FileDownload, RestartAlt, UploadFile } from '@mui/icons-material';
 
 const drawerWidth = 240;
-const navItems = [{ label: 'Importar Arquivo', icon: <UploadFile /> }, { label: 'Resetar', icon: <RestartAlt /> }, { label: 'Exportar Dados', icon: <FileDownload /> }];
 
 function MainHeader(props) {
+  // props.isProjectOpen: boolean — shows/hides Reset and Export buttons
   const { window: muiWindow } = props;
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [exportMenuAnchor, setExportMenuAnchor] = React.useState(null);
-  const [importMenuAnchor, setImportMenuAnchor] = React.useState(null);
   const [resetMenuAnchor, setResetMenuAnchor] = React.useState(null);
   const [resetCurrentServiceDialog, setResetCurrentServiceDialog] = React.useState(false);
-  const folderInputRef = React.useRef(null);
-  const mp4InputRef = React.useRef(null);
+  const [resetFileName, setResetFileName] = React.useState('');
   const projectInputRef = React.useRef(null);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen((prevState) => !prevState);
-  };
+  const handleDrawerToggle = () => setMobileOpen(prev => !prev);
 
-  const handleExportMenuOpen = (event) => {
-    setExportMenuAnchor(event.currentTarget);
-  };
+  const handleExportMenuOpen = (event) => setExportMenuAnchor(event.currentTarget);
+  const handleExportMenuClose = () => setExportMenuAnchor(null);
+  const handleResetMenuOpen = (event) => setResetMenuAnchor(event.currentTarget);
+  const handleResetMenuClose = () => setResetMenuAnchor(null);
 
-  const handleExportMenuClose = () => {
-    setExportMenuAnchor(null);
-  };
-
-  const handleImportMenuOpen = (event) => {
-    setImportMenuAnchor(event.currentTarget);
-  };
-
-  const handleImportMenuClose = () => {
-    setImportMenuAnchor(null);
-  };
-
-  const handleResetMenuOpen = (event) => {
-    setResetMenuAnchor(event.currentTarget);
-  };
-
-  const handleResetMenuClose = () => {
-    setResetMenuAnchor(null);
-  };
+  // ─── Export ──────────────────────────────────────────────────────────────
 
   const exportStoredVehicles = () => {
     setLoading(true);
-    // Use setTimeout to ensure the spinner shows before heavy processing
     setTimeout(() => {
       try {
         const raw = localStorage.getItem('vehicleList');
-        if (!raw) {
-          alert('Nenhum registro para exportar');
-          setLoading(false);
-          return;
-        }
+        if (!raw) { alert('Nenhum registro para exportar'); setLoading(false); return; }
         const list = JSON.parse(raw);
-        if (!Array.isArray(list) || list.length === 0) {
-          alert('Nenhum registro para exportar');
-          setLoading(false);
-          return;
-        }
+        if (!Array.isArray(list) || list.length === 0) { alert('Nenhum registro para exportar'); setLoading(false); return; }
 
-        // Define vehicle types in the exact order you want
         const vehicleTypes = ['2E', '3E', '4E', '2CB', '3CB', '4CB', '2C (16)', '2C (22)', '3C', '4C', '2S2', '2S3', '2I3', '2J3', '3S2', '3S3', '4S3', '3I3', '3J3', '3T4', '3T6', '2C2', '2C3', '3C2', '3C3', '3D4', '3D6', 'Moto'];
-
-        // Group by date -> fromTo (De Para) -> 15-minute time slots
         const grouped = {};
 
         list.forEach((v) => {
@@ -101,18 +67,13 @@ function MainHeader(props) {
           const time = v.time ?? '00:00';
           const type = v.type ?? 'Desconhecido';
           const fromTo = v.fromTo ?? v.from_to ?? '';
-
-          // Extract hour and minute from time (format: "HH:MM")
           const [hourStr, minStr] = time.split(':');
           const hour = parseInt(hourStr, 10) || 0;
           const min = parseInt(minStr, 10) || 0;
-
-          // Calculate 15-minute bucket
           const bucket = Math.floor(min / 15) * 15;
           const nextBucket = (bucket + 15) % 60;
           const nextHour = (bucket + 15 >= 60 ? hour + 1 : hour) % 24;
           const timeRange = `${String(hour).padStart(2, '0')}:${String(bucket).padStart(2, '0')} - ${String(nextHour).padStart(2, '0')}:${String(nextBucket).padStart(2, '0')}`;
-
           if (!grouped[date]) grouped[date] = {};
           const dirKey = fromTo || '';
           if (!grouped[date][dirKey]) grouped[date][dirKey] = {};
@@ -122,59 +83,35 @@ function MainHeader(props) {
         });
 
         const dates = Object.keys(grouped).sort();
-
-        // Generate all possible 15-minute time slots for a day
         const allTimeSlots = [];
         for (let h = 0; h < 24; h++) {
           for (let m = 0; m < 60; m += 15) {
             const nextM = (m + 15) % 60;
             const nextH = m + 15 >= 60 ? h + 1 : h;
-            const slot = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} - ${String(nextH % 24).padStart(2, '0')}:${String(nextM).padStart(2, '0')}`;
-            allTimeSlots.push(slot);
+            allTimeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} - ${String(nextH % 24).padStart(2, '0')}:${String(nextM).padStart(2, '0')}`);
           }
         }
 
-        // Build CSV rows
-        const csvRows = [];
-
-        // Add header row
-        csvRows.push(['Data', 'Hora', 'Direção', ...vehicleTypes]);
-
-        // Add data rows: for each date, for each direction (fromTo), for each time slot
+        const csvRows = [['Data', 'Hora', 'Direção', ...vehicleTypes]];
         dates.forEach((date) => {
-          const directions = Object.keys(grouped[date]).sort();
-          // ensure at least one direction (could be [''] if only empty)
-          directions.forEach((dir) => {
+          Object.keys(grouped[date]).sort().forEach((dir) => {
             allTimeSlots.forEach((timeRange) => {
               const row = [date, timeRange, dir];
               vehicleTypes.forEach((type) => {
-                const count = (grouped[date] && grouped[date][dir] && grouped[date][dir][timeRange] && grouped[date][dir][timeRange].counts[type])
-                  ? grouped[date][dir][timeRange].counts[type]
-                  : 0;
-                row.push(count);
+                row.push(grouped[date]?.[dir]?.[timeRange]?.counts[type] ?? 0);
               });
               csvRows.push(row);
             });
           });
         });
 
-        // Convert to CSV string
-        const csv = csvRows.map(row =>
-          row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-        ).join('\n');
-
-        // Prepend UTF-8 BOM so Excel on Windows recognizes accents/cedilla correctly
-        const csvWithBOM = '\uFEFF' + csv;
-
-        const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+        const csv = '﻿' + csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         const ts = new Date().toISOString().replace(/[:.]/g, '-');
-        // Get serviceTitle from localStorage
-        const serviceTitle = localStorage.getItem('serviceTitle') || 'sem_titulo';
-        // Sanitize serviceTitle for filename (remove invalid characters)
-        const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
+        const sanitizedTitle = (localStorage.getItem('serviceTitle') || 'sem_titulo').replace(/[^a-z0-9_\-]/gi, '_');
         a.download = `${sanitizedTitle}_contagem_veiculos_${ts}.csv`;
         document.body.appendChild(a);
         a.click();
@@ -189,87 +126,17 @@ function MainHeader(props) {
     }, 100);
   };
 
-  const handleNavClick = (item, event) => {
-    // Close mobile drawer if open
-    if (mobileOpen) setMobileOpen(false);
-
-    switch (item) {
-      case 'Exportar Dados':
-        // Open submenu instead of direct export
-        handleExportMenuOpen(event);
-        break;
-      case 'Resetar':
-        handleResetMenuOpen(event);
-        break;
-      case 'Importar Arquivo':
-        // Open submenu instead of direct upload
-        handleImportMenuOpen(event);
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleExportVehicles = () => {
-    handleExportMenuClose();
-    if (mobileOpen) setMobileOpen(false);
-    exportStoredVehicles();
-  };
-
   const exportAxlesReport = () => {
     setLoading(true);
-    // Use setTimeout to ensure the spinner shows before heavy processing
     setTimeout(() => {
       try {
         const raw = localStorage.getItem('vehicleList');
-        if (!raw) {
-          alert('Nenhum registro para exportar');
-          setLoading(false);
-          return;
-        }
+        if (!raw) { alert('Nenhum registro para exportar'); setLoading(false); return; }
         const list = JSON.parse(raw);
-        if (!Array.isArray(list) || list.length === 0) {
-          alert('Nenhum registro para exportar');
-          setLoading(false);
-          return;
-        }
+        if (!Array.isArray(list) || list.length === 0) { alert('Nenhum registro para exportar'); setLoading(false); return; }
 
-        // Create mapping of vehicle type to axle count
-        const axleMapping = {
-          '2E': 2,
-          '3E': 1,
-          '4E': 2,
-          'Moto': 2,
-          '2CB': 2,
-          '3CB': 3,
-          '4CB': 4,
-          '2C (16)': 2,
-          '2C (22)': 2,
-          '3C': 3,
-          '4C': 4,
-          '2S2': 4,
-          '2S3': 5,
-          '2I3': 5,
-          '2J3': 5,
-          '3S2': 5,
-          '3S3': 6,
-          '4S3': 7,
-          '3I3': 6,
-          '3J3': 6,
-          '3T4': 7,
-          '3T6': 9,
-          '2C2': 4,
-          '2C3': 5,
-          '3C2': 5,
-          '3C3': 6,
-          '3D4': 7,
-          '3D6': 9,
-        };
-
-        // Define vehicle types in the exact order
+        const axleMapping = { '2E': 2, '3E': 1, '4E': 2, 'Moto': 2, '2CB': 2, '3CB': 3, '4CB': 4, '2C (16)': 2, '2C (22)': 2, '3C': 3, '4C': 4, '2S2': 4, '2S3': 5, '2I3': 5, '2J3': 5, '3S2': 5, '3S3': 6, '4S3': 7, '3I3': 6, '3J3': 6, '3T4': 7, '3T6': 9, '2C2': 4, '2C3': 5, '3C2': 5, '3C3': 6, '3D4': 7, '3D6': 9 };
         const vehicleTypes = ['2E', '3E', '4E', '2CB', '3CB', '4CB', '2C (16)', '2C (22)', '3C', '4C', '2S2', '2S3', '2I3', '2J3', '3S2', '3S3', '4S3', '3I3', '3J3', '3T4', '3T6', '2C2', '2C3', '3C2', '3C3', '3D4', '3D6', 'Moto'];
-
-        // Group by date -> fromTo (De Para) -> 15-minute time slots
         const grouped = {};
 
         list.forEach((v) => {
@@ -278,23 +145,14 @@ function MainHeader(props) {
           const type = v.type ?? 'Desconhecido';
           const fromTo = v.fromTo ?? v.from_to ?? '';
           const raisedAxles = parseInt(v.raisedAxles ?? 0, 10);
-
-          // Get base axle count for this vehicle type
-          const baseAxles = axleMapping[type] ?? 0;
-          // Calculate effective axles: base axles - raised axles
-          const effectiveAxles = Math.max(0, baseAxles - raisedAxles);
-
-          // Extract hour and minute from time (format: "HH:MM")
+          const effectiveAxles = Math.max(0, (axleMapping[type] ?? 0) - raisedAxles);
           const [hourStr, minStr] = time.split(':');
           const hour = parseInt(hourStr, 10) || 0;
           const min = parseInt(minStr, 10) || 0;
-
-          // Calculate 15-minute bucket
           const bucket = Math.floor(min / 15) * 15;
           const nextBucket = (bucket + 15) % 60;
           const nextHour = (bucket + 15 >= 60 ? hour + 1 : hour) % 24;
           const timeRange = `${String(hour).padStart(2, '0')}:${String(bucket).padStart(2, '0')} - ${String(nextHour).padStart(2, '0')}:${String(nextBucket).padStart(2, '0')}`;
-
           if (!grouped[date]) grouped[date] = {};
           const dirKey = fromTo || '';
           if (!grouped[date][dirKey]) grouped[date][dirKey] = {};
@@ -304,58 +162,35 @@ function MainHeader(props) {
         });
 
         const dates = Object.keys(grouped).sort();
-
-        // Generate all possible 15-minute time slots for a day
         const allTimeSlots = [];
         for (let h = 0; h < 24; h++) {
           for (let m = 0; m < 60; m += 15) {
             const nextM = (m + 15) % 60;
             const nextH = m + 15 >= 60 ? h + 1 : h;
-            const slot = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} - ${String(nextH % 24).padStart(2, '0')}:${String(nextM).padStart(2, '0')}`;
-            allTimeSlots.push(slot);
+            allTimeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} - ${String(nextH % 24).padStart(2, '0')}:${String(nextM).padStart(2, '0')}`);
           }
         }
 
-        // Build CSV rows
-        const csvRows = [];
-
-        // Add header row
-        csvRows.push(['Data', 'Hora', 'Direção', ...vehicleTypes]);
-
-        // Add data rows: for each date, for each direction (fromTo), for each time slot
+        const csvRows = [['Data', 'Hora', 'Direção', ...vehicleTypes]];
         dates.forEach((date) => {
-          const directions = Object.keys(grouped[date]).sort();
-          directions.forEach((dir) => {
+          Object.keys(grouped[date]).sort().forEach((dir) => {
             allTimeSlots.forEach((timeRange) => {
               const row = [date, timeRange, dir];
               vehicleTypes.forEach((type) => {
-                const axleCount = (grouped[date] && grouped[date][dir] && grouped[date][dir][timeRange] && grouped[date][dir][timeRange].axleCounts[type])
-                  ? grouped[date][dir][timeRange].axleCounts[type]
-                  : 0;
-                row.push(axleCount);
+                row.push(grouped[date]?.[dir]?.[timeRange]?.axleCounts[type] ?? 0);
               });
               csvRows.push(row);
             });
           });
         });
 
-        // Convert to CSV string
-        const csv = csvRows.map(row =>
-          row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-        ).join('\n');
-
-        // Prepend UTF-8 BOM so Excel on Windows recognizes accents/cedilla correctly
-        const csvWithBOM = '\uFEFF' + csv;
-
-        const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+        const csv = '﻿' + csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         const ts = new Date().toISOString().replace(/[:.]/g, '-');
-        // Get serviceTitle from localStorage
-        const serviceTitle = localStorage.getItem('serviceTitle') || 'sem_titulo';
-        // Sanitize serviceTitle for filename (remove invalid characters)
-        const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
+        const sanitizedTitle = (localStorage.getItem('serviceTitle') || 'sem_titulo').replace(/[^a-z0-9_\-]/gi, '_');
         a.download = `${sanitizedTitle}_contagem_eixos_${ts}.csv`;
         document.body.appendChild(a);
         a.click();
@@ -370,62 +205,12 @@ function MainHeader(props) {
     }, 100);
   };
 
-  const handleExportAxles = () => {
-    handleExportMenuClose();
-    if (mobileOpen) setMobileOpen(false);
-    exportAxlesReport();
-  };
+  const handleExportVehicles = () => { handleExportMenuClose(); exportStoredVehicles(); };
+  const handleExportAxles = () => { handleExportMenuClose(); exportAxlesReport(); };
 
-  async function handleFolderUpload(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) {
-      return;
-    }
-    setLoading(true);
-
-    // Pequeno delay para garantir que o spinner de loading apareça antes do processamento pesado
-    setTimeout(async () => {
-      try {
-        const result = await readFolder(files);
-        // use the folder name from the first file's path if available
-        const folderName = files[0].webkitRelativePath?.split('/')[0] || "Pasta de Dados";
-        props.onLoadRecords(result, folderName);
-      } catch (error) {
-        console.error('Erro ao carregar pasta:', error);
-        alert('Erro ao carregar pasta');
-      } finally {
-        setLoading(false);
-        if (folderInputRef.current) folderInputRef.current.value = '';
-      }
-    }, 100);
-  }
-
-  function handleMp4Upload(event) {
-    const file = event.target.files[0];
-    if (!file) {
-      return;
-    }
-    if (typeof props.onLoadMp4 === 'function') {
-      props.onLoadMp4(file);
-    }
-    // Clear the input so the same file can be selected again
-    event.target.value = '';
-  }
-
-  const handleImportFolder = () => {
-    handleImportMenuClose();
-    if (mobileOpen) setMobileOpen(false);
-    folderInputRef.current?.click();
-  };
-
-  const handleImportMp4 = () => {
-    handleImportMenuClose();
-    if (mobileOpen) setMobileOpen(false);
-    mp4InputRef.current?.click();
-  };
+  // ─── Import project ───────────────────────────────────────────────────────
 
   const handleImportProject = () => {
-    handleImportMenuClose();
     if (mobileOpen) setMobileOpen(false);
     projectInputRef.current?.click();
   };
@@ -448,32 +233,19 @@ function MainHeader(props) {
     }, 100);
   }
 
-  function handleReset() {
-    if (typeof props.onResetRequest === 'function') {
-      props.onResetRequest();
-    }
-  }
+  // ─── Reset ────────────────────────────────────────────────────────────────
 
   function handleResetTotal() {
     handleResetMenuClose();
     if (mobileOpen) setMobileOpen(false);
-    handleReset();
+    if (typeof props.onResetRequest === 'function') props.onResetRequest();
   }
-
-  /* Novo estado para armazenar o nome do arquivo para o dialog */
-  const [resetFileName, setResetFileName] = React.useState('');
 
   function handleResetCurrentService() {
     handleResetMenuClose();
     if (mobileOpen) setMobileOpen(false);
-
     const fileName = props.currentFileName || (typeof window !== 'undefined' ? localStorage.getItem('currentFileName') : null);
-
-    if (!fileName) {
-      alert('Nenhum arquivo carregado atualmente.');
-      return;
-    }
-
+    if (!fileName) { alert('Nenhum arquivo carregado atualmente.'); return; }
     setResetFileName(fileName);
     setResetCurrentServiceDialog(true);
   }
@@ -485,14 +257,8 @@ function MainHeader(props) {
       setResetCurrentServiceDialog(false);
       return;
     }
-
     const raw = localStorage.getItem('vehicleList');
-    if (!raw) {
-      alert('Nenhum registro encontrado no sistema.');
-      setResetCurrentServiceDialog(false);
-      return;
-    }
-
+    if (!raw) { alert('Nenhum registro encontrado no sistema.'); setResetCurrentServiceDialog(false); return; }
     try {
       const list = JSON.parse(raw);
       if (!Array.isArray(list)) {
@@ -501,22 +267,13 @@ function MainHeader(props) {
         setResetCurrentServiceDialog(false);
         return;
       }
-
-      const initialCount = list.length;
-      const filteredList = list.filter(v =>
-        (v.fileName || '').trim().toLowerCase() !== targetName.toLowerCase()
-      );
-
-      if (filteredList.length === initialCount) {
-        alert('Nenhum registro encontrado especificamente para o arquivo: ' + targetName);
+      const filteredList = list.filter(v => (v.fileName || '').trim().toLowerCase() !== targetName.toLowerCase());
+      if (filteredList.length === list.length) {
+        alert('Nenhum registro encontrado especificamente para: ' + targetName);
       } else {
         localStorage.setItem('vehicleList', JSON.stringify(filteredList));
-        // Also clear start date time metadata for this file
         localStorage.removeItem(`startDateTime_${targetName}`);
-
-        if (typeof props.onClearVehicles === 'function') {
-          props.onClearVehicles();
-        }
+        if (typeof props.onClearVehicles === 'function') props.onClearVehicles();
       }
     } catch (e) {
       console.error('Erro ao resetar contagem:', e);
@@ -526,41 +283,37 @@ function MainHeader(props) {
     }
   }
 
-
-  function cancelResetCurrentService() {
-    setResetCurrentServiceDialog(false);
-  }
+  // ─── Drawer ───────────────────────────────────────────────────────────────
 
   const drawer = (
     <Box onClick={(e) => {
-      // Don't close drawer if clicking on submenu items
-      const submenuItems = ['Exportar Dados', 'Importar Arquivo'];
-      if (!submenuItems.includes(e.target.textContent)) {
-        handleDrawerToggle();
-      }
+      const submenus = ['Exportar Dados', 'Resetar'];
+      if (!submenus.includes(e.target.textContent)) handleDrawerToggle();
     }} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2 }}>
         <Image src={logo} width={55} alt='logo' />
       </Typography>
       <Divider />
       <List>
-        {navItems.map((item) => (
-          item.label === 'Exportar Dados' ? (
-            <React.Fragment key={item.label}>
-              <ListItem disablePadding>
-                <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleNavClick(item.label, e)}>
-                  <ListItemText primary={item.label} />
-                </ListItemButton>
-              </ListItem>
-            </React.Fragment>
-          ) : (
-            <ListItem key={item.label} disablePadding>
-              <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleNavClick(item.label, e)}>
-                <ListItemText primary={item.label} />
+        <ListItem disablePadding>
+          <ListItemButton sx={{ textAlign: 'center' }} onClick={handleImportProject}>
+            <ListItemText primary="Importar Projeto" />
+          </ListItemButton>
+        </ListItem>
+        {props.isProjectOpen && (
+          <>
+            <ListItem disablePadding>
+              <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleResetMenuOpen(e)}>
+                <ListItemText primary="Resetar" />
               </ListItemButton>
             </ListItem>
-          )
-        ))}
+            <ListItem disablePadding>
+              <ListItemButton sx={{ textAlign: 'center' }} onClick={(e) => handleExportMenuOpen(e)}>
+                <ListItemText primary="Exportar Dados" />
+              </ListItemButton>
+            </ListItem>
+          </>
+        )}
       </List>
     </Box>
   );
@@ -593,61 +346,46 @@ function MainHeader(props) {
                 </Typography>
               </Box>
             </Box>
+
+            {/* Desktop nav */}
             <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-              {navItems.map((item) => (
-                item.label === 'Importar Arquivo' ? (
-                  <React.Fragment key={item.label}>
-                    <Button sx={{ color: '#fff' }} startIcon={item.icon} onClick={(e) => handleNavClick(item.label, e)}>
-                      {item.label}
-                    </Button>
-                  </React.Fragment>
-                ) : (
-                  <Button key={item.label} sx={{ color: '#fff' }} startIcon={item.icon} onClick={(e) => handleNavClick(item.label, e)}>
-                    {item.label}
+              <Button sx={{ color: '#fff' }} startIcon={<UploadFile />} onClick={handleImportProject}>
+                Importar Projeto
+              </Button>
+              {props.isProjectOpen && (
+                <>
+                  <Button sx={{ color: '#fff' }} startIcon={<RestartAlt />} onClick={handleResetMenuOpen}>
+                    Resetar
                   </Button>
-                )
-              ))}
+                  <Button sx={{ color: '#fff' }} startIcon={<FileDownload />} onClick={handleExportMenuOpen}>
+                    Exportar Dados
+                  </Button>
+                </>
+              )}
             </Box>
+
             {/* Export submenu */}
-            <Menu
-              anchorEl={exportMenuAnchor}
-              open={Boolean(exportMenuAnchor)}
-              onClose={handleExportMenuClose}
-            >
+            <Menu anchorEl={exportMenuAnchor} open={Boolean(exportMenuAnchor)} onClose={handleExportMenuClose}>
               <MenuItem onClick={handleExportVehicles}>Exportar Veículos</MenuItem>
               <MenuItem onClick={handleExportAxles}>Exportar Eixos</MenuItem>
             </Menu>
-            {/* Import submenu */}
-            <Menu
-              anchorEl={importMenuAnchor}
-              open={Boolean(importMenuAnchor)}
-              onClose={handleImportMenuClose}
-            >
-              <MenuItem onClick={handleImportFolder}>Importar Frames</MenuItem>
-              <MenuItem onClick={handleImportMp4}>Importar MP4</MenuItem>
-              <MenuItem onClick={handleImportProject}>Importar Projeto</MenuItem>
-            </Menu>
+
             {/* Reset submenu */}
-            <Menu
-              anchorEl={resetMenuAnchor}
-              open={Boolean(resetMenuAnchor)}
-              onClose={handleResetMenuClose}
-            >
+            <Menu anchorEl={resetMenuAnchor} open={Boolean(resetMenuAnchor)} onClose={handleResetMenuClose}>
               <MenuItem onClick={handleResetTotal}>Serviço Total</MenuItem>
               <MenuItem onClick={handleResetCurrentService}>Contagem Atual</MenuItem>
             </Menu>
-            {/* Hidden file inputs */}
+
+            {/* Hidden project folder input */}
             <input
-              ref={folderInputRef}
+              ref={projectInputRef}
               type="file"
               webkitdirectory=""
               directory=""
               multiple
               style={{ display: 'none' }}
-              onChange={handleFolderUpload}
+              onChange={handleProjectUpload}
             />
-            <input ref={mp4InputRef} type="file" accept=".mp4,video/mp4" style={{ display: 'none' }} onChange={handleMp4Upload} />
-            <input ref={projectInputRef} type="file" webkitdirectory="" directory="" multiple style={{ display: 'none' }} onChange={handleProjectUpload} />
           </Toolbar>
         </AppBar>
         <nav>
@@ -656,9 +394,7 @@ function MainHeader(props) {
             variant="temporary"
             open={mobileOpen}
             onClose={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
-            }}
+            ModalProps={{ keepMounted: true }}
             sx={{
               display: { xs: 'block', sm: 'none' },
               '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
@@ -667,30 +403,22 @@ function MainHeader(props) {
             {drawer}
           </Drawer>
         </nav>
-      </Box >
+      </Box>
       <FullScreenSpinner open={loading} />
 
       {/* Reset Current Service Confirmation Dialog */}
-      <Dialog open={resetCurrentServiceDialog} onClose={cancelResetCurrentService}>
+      <Dialog open={resetCurrentServiceDialog} onClose={() => setResetCurrentServiceDialog(false)}>
         <DialogTitle>Confirmar Reset da Contagem Atual</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Tem certeza que deseja remover todos os registros do arquivo atual?
           </DialogContentText>
-          <Typography sx={{ mt: 2, fontWeight: 'bold' }}>
-            Arquivo:
-          </Typography>
-          <Typography sx={{ fontWeight: 'normal' }}>
-            {resetFileName}
-          </Typography>
+          <Typography sx={{ mt: 2, fontWeight: 'bold' }}>Arquivo:</Typography>
+          <Typography>{resetFileName}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={cancelResetCurrentService} color="inherit">
-            Cancelar
-          </Button>
-          <Button onClick={confirmResetCurrentService} variant="contained" color="error">
-            Confirmar e Deletar
-          </Button>
+          <Button onClick={() => setResetCurrentServiceDialog(false)} color="inherit">Cancelar</Button>
+          <Button onClick={confirmResetCurrentService} variant="contained" color="error">Confirmar e Deletar</Button>
         </DialogActions>
       </Dialog>
     </>
@@ -698,10 +426,6 @@ function MainHeader(props) {
 }
 
 MainHeader.propTypes = {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * You won't need it on your project.
-   */
   window: PropTypes.func,
 };
 

@@ -1,9 +1,6 @@
 'use client'
-import { Box, Button, TextField, Typography, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { Box, Button, Typography, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { useState, useRef, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import { v4 as uuidv4 } from 'uuid';
@@ -426,14 +423,6 @@ export default function Mp4Player(props) {
     setIsNewVehicle(isNew);
   }, [startDateTime]);
 
-  const handleChangeLeft = useCallback((event) => {
-    setLeftDirection(event.target.value);
-  }, []);
-
-  const handleChangeRight = useCallback((event) => {
-    setRightDirection(event.target.value);
-  }, []);
-
   const resetToastMessage = useCallback(() => {
     setToastMessage(null);
     setToastType('warning');
@@ -518,63 +507,26 @@ export default function Mp4Player(props) {
     <>
       <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', p: 1 }}>
         <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
-          {/* Titulo do Serviço - Acima das direções */}
-          <Box sx={{ mb: 1 }}>
-            <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', fontSize: '1.2rem' }}>
-              Titulo do Serviço
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <TextField
-                color="primary"
-                size="small"
-                placeholder="Insira o titulo do serviço"
-                focused
-                value={serviceTitle}
-                onChange={(e) => setServiceTitle(e.target.value)}
-                fullWidth
-              />
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleCompleteService}
-                disabled={!serviceTitle || storedVehicles.length === 0}
-                sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }}
-              >
-                Completar Serviço
-              </Button>
+          {/* Info bar: serviço + direções + ações */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="caption" sx={{ color: '#666', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Serviço</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: '#22423A', fontSize: '0.975rem' }} noWrap>{serviceTitle}</Typography>
             </Box>
-          </Box>
-
-          {/* Direção - Acima do vídeo */}
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', fontSize: '1.2rem' }}>
-              Direção
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, my: 1 }}>
-              <TextField
-                label="Esquerda"
-                placeholder="Insira a direção esquerda"
-                color="error"
-                size="small"
-                focused
-                value={leftDirection}
-                onChange={handleChangeLeft}
-                fullWidth
-              />
-              <TextField
-                label="Direita"
-                placeholder="Insira a direção direita"
-                color="success"
-                size="small"
-                focused
-                value={rightDirection}
-                onChange={handleChangeRight}
-                fullWidth
-              />
-              <Button variant="contained" color="primary" onClick={handleAddNewVehicle}>
-                <AddIcon />
-              </Button>
+            <Box>
+              <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Esquerda</Typography>
+              <Typography variant="body2" sx={{ fontSize: '0.975rem' }}>{leftDirection}</Typography>
             </Box>
+            <Box>
+              <Typography variant="caption" sx={{ color: '#2e7d32', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Direita</Typography>
+              <Typography variant="body2" sx={{ fontSize: '0.975rem' }}>{rightDirection}</Typography>
+            </Box>
+            <Button variant="contained" color="primary" onClick={handleAddNewVehicle}>
+              <AddIcon />
+            </Button>
+            <Button variant="contained" color="success" onClick={handleCompleteService} disabled={!serviceTitle || storedVehicles.length === 0} sx={{ whiteSpace: 'nowrap' }}>
+              Completar Serviço
+            </Button>
           </Box>
 
           {/* Player de Vídeo */}
@@ -600,26 +552,6 @@ export default function Mp4Player(props) {
 
           {/* Campos de Controle */}
           <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 1, alignItems: 'flex-start' }}>
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
-              <DateTimePicker
-                label="Data/Hora Inicial"
-                value={startDateTime}
-                onChange={(newValue) => setStartDateTime(newValue)}
-                format="DD/MM/YYYY HH:mm:ss"
-                ampm={false}
-                views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
-                timeSteps={{ minutes: 1, seconds: 1 }}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    sx: { minWidth: 200, flex: 1 },
-                    color: "primary",
-                    focused: true
-                  }
-                }}
-              />
-            </LocalizationProvider>
-
             <FormControl size="small" sx={{ minWidth: 120, flex: '0 0 auto' }}>
               <InputLabel>Velocidade</InputLabel>
               <Select

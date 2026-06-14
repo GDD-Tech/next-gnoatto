@@ -260,12 +260,11 @@ export default function Main() {
     return (
         <>
             <MainHeader
-                onLoadRecords={loadZipData}
-                onLoadMp4={loadMp4Data}
                 onLoadProject={loadProjectData}
                 onResetRequest={() => setResetRequest(true)}
                 onClearVehicles={() => setClearVehiclesFlag(prev => prev + 1)}
                 currentFileName={effectiveFileName}
+                isProjectOpen={isProjectMode}
             />
 
             {isProjectMode && (
@@ -277,9 +276,9 @@ export default function Main() {
                 />
             )}
 
-            {effectiveMode === 'zip' ? (
+            {isProjectMode && (effectiveMode === 'zip' ? (
                 <ImageLoader
-                    key={isProjectMode ? `project-folder-${currentFolderIndex}` : 'standalone'}
+                    key={`project-folder-${currentFolderIndex}`}
                     loadedRecords={effectiveRegistros}
                     loadedImages={effectiveImagens}
                     resetRequest={resetRequest}
@@ -289,20 +288,20 @@ export default function Main() {
                     continueFromLast={continueFromLast}
                     loadVersion={loadVersion}
                     projectConfig={projectConfig}
-                    onFolderEnd={isProjectMode ? handleProjectNextFolder : null}
+                    onFolderEnd={handleProjectNextFolder}
                 />
             ) : (
                 <Mp4Player
-                    key={isProjectMode ? `project-folder-${currentFolderIndex}` : 'standalone'}
+                    key={`project-folder-${currentFolderIndex}`}
                     videoFile={effectiveVideoFile}
                     resetRequest={resetRequest}
                     onResetHandled={() => setResetRequest(false)}
                     clearVehiclesFlag={clearVehiclesFlag}
                     continueFromLast={continueFromLast}
                     projectConfig={projectConfig}
-                    onFolderEnd={isProjectMode ? handleProjectNextFolder : null}
+                    onFolderEnd={handleProjectNextFolder}
                 />
-            )}
+            ))}
 
             {/* Confirmation Dialog — different file or project import */}
             <Dialog open={showConfirmDialog} onClose={handleCancelLoad}>

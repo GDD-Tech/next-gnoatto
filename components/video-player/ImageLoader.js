@@ -1,5 +1,5 @@
 'use client'
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import AddIcon from '@mui/icons-material/Add';
@@ -212,14 +212,6 @@ export default function ImageLoader(props) {
     setSelectedVehicle(vehicle);
   }, []);
 
-  const handleChangeLeft = (event) => {
-    setLeftDirection(event.target.value);
-  };
-
-  const handleChangeRight = (event) => {
-    setRightDirection(event.target.value);
-  };
-
   const resetToastMessage = () => {
     setToastMessage(null);
   }
@@ -290,34 +282,23 @@ export default function ImageLoader(props) {
       <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', p: 1 }}>
         <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
           {selectedVehicle && (
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', fontSize: '1.2rem' }}>Titulo do Serviço</Typography>
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                <TextField
-                  color="primary"
-                  size="small"
-                  placeholder="Insira o titulo do serviço"
-                  focused
-                  value={serviceTitle}
-                  onChange={(e) => setServiceTitle(e.target.value)}
-                  fullWidth
-                />
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={handleCompleteService}
-                  disabled={!serviceTitle || storedVehicles.length === 0}
-                  sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }}
-                >
-                  Completar Serviço
-                </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="caption" sx={{ color: '#666', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Serviço</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#22423A', fontSize: '0.975rem' }} noWrap>{serviceTitle}</Typography>
               </Box>
-              <Typography variant="h6" sx={{ color: '#22423A', fontWeight: 'bold', mt: 1, fontSize: '1.2rem' }}>Direção</Typography>
-              <Box sx={{ display: 'flex', gap: 2, my: 1 }}>
-                <TextField label="Esquerda" placeholder="Insira a direção esquerda" color="error" size="small" focused value={leftDirection} onChange={handleChangeLeft} fullWidth />
-                <TextField label="Direita" placeholder="Insira a direção direita" color="success" size="small" focused value={rightDirection} onChange={handleChangeRight} fullWidth />
-                <Button variant="contained" color="primary" onClick={handleAddNewVehicle} ><AddIcon /></Button>
+              <Box>
+                <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Esquerda</Typography>
+                <Typography variant="body2" sx={{ fontSize: '0.975rem' }}>{leftDirection}</Typography>
               </Box>
+              <Box>
+                <Typography variant="caption" sx={{ color: '#2e7d32', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Direita</Typography>
+                <Typography variant="body2" sx={{ fontSize: '0.975rem' }}>{rightDirection}</Typography>
+              </Box>
+              <Button variant="contained" color="primary" onClick={handleAddNewVehicle}><AddIcon /></Button>
+              <Button variant="contained" color="success" onClick={handleCompleteService} disabled={!serviceTitle || storedVehicles.length === 0} sx={{ whiteSpace: 'nowrap' }}>
+                Completar Serviço
+              </Button>
             </Box>
           )}
           <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} onFolderComplete={props.onFolderEnd} />
