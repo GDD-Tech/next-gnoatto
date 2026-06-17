@@ -62,6 +62,14 @@ export default function CompleteServiceModal({
             </Typography>
           </Box>
 
+          {/* Exportar JSON */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <DescriptionIcon />
+            <Typography>
+              Exportar Dados Brutos (JSON)
+            </Typography>
+          </Box>
+
           {/* Resetar */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <DeleteIcon />

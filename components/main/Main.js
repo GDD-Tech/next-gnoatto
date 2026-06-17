@@ -1,12 +1,36 @@
 'use client'
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import MainHeader from "@/components/main-header/MainHeader";
 import ImageLoader from "@/components/video-player/ImageLoader";
 import Mp4Player from "@/components/video-player/Mp4Player";
 import ProjectNavigation from "@/components/project-navigation/ProjectNavigation";
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 
 export default function Main() {
+    const [darkMode, setDarkMode] = useState(false);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('darkMode');
+        if (saved === 'true') setDarkMode(true);
+    }, []);
+
+    const toggleDarkMode = () => {
+        setDarkMode(prev => {
+            const next = !prev;
+            localStorage.setItem('darkMode', String(next));
+            return next;
+        });
+    };
+
+    const theme = createTheme({
+        palette: {
+            mode: darkMode ? 'dark' : 'light',
+            primary: { main: darkMode ? '#4a9d84' : '#22423A' },
+        },
+    });
+
     const [mode, setMode] = useState('zip'); // 'zip' or 'mp4'
     const [videoFile, setVideoFile] = useState(null);
     const [registros, setRegistros] = useState([]);
@@ -258,13 +282,16 @@ export default function Main() {
     }
 
     return (
-        <>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
             <MainHeader
                 onLoadProject={loadProjectData}
                 onResetRequest={() => setResetRequest(true)}
                 onClearVehicles={() => setClearVehiclesFlag(prev => prev + 1)}
                 currentFileName={effectiveFileName}
                 isProjectOpen={isProjectMode}
+                darkMode={darkMode}
+                onToggleDarkMode={toggleDarkMode}
             />
 
             {isProjectMode && (
@@ -389,6 +416,6 @@ export default function Main() {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </>
+        </ThemeProvider>
     );
 }

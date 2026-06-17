@@ -5,6 +5,10 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import { v4 as uuidv4 } from 'uuid';
 import AddIcon from '@mui/icons-material/Add';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
+import Replay10Icon from '@mui/icons-material/Replay10';
+import Forward10Icon from '@mui/icons-material/Forward10';
 import { getVehicleData } from "@/utils/staticVehicles";
 import VehicleItemList from "./VehicleItemList";
 import BasicModal from "../modal/BasicModal";
@@ -509,17 +513,19 @@ export default function Mp4Player(props) {
         <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
           {/* Info bar: serviço + direções + ações */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="caption" sx={{ color: '#666', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Serviço</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600, color: '#22423A', fontSize: '0.975rem' }} noWrap>{serviceTitle}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Esquerda</Typography>
-              <Typography variant="body2" sx={{ fontSize: '0.975rem' }}>{leftDirection}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: '#2e7d32', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Direita</Typography>
-              <Typography variant="body2" sx={{ fontSize: '0.975rem' }}>{rightDirection}</Typography>
+            <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+              <Box>
+                <Typography component="span" sx={{ color: 'text.secondary', fontWeight: 'bold', fontSize: '1.15rem' }}>Serviço: </Typography>
+                <Typography component="span" sx={{ fontWeight: 600, color: 'primary.main', fontSize: '1.15rem' }}>{serviceTitle}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" component="span" sx={{ color: '#d32f2f', fontWeight: 'bold', fontSize: '0.844rem' }}>Esquerda: </Typography>
+                <Typography variant="body2" component="span" sx={{ fontSize: '0.975rem' }}>{leftDirection}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" component="span" sx={{ color: '#2e7d32', fontWeight: 'bold', fontSize: '0.844rem' }}>Direita: </Typography>
+                <Typography variant="body2" component="span" sx={{ fontSize: '0.975rem' }}>{rightDirection}</Typography>
+              </Box>
             </Box>
             <Button variant="contained" color="primary" onClick={handleAddNewVehicle}>
               <AddIcon />
@@ -552,6 +558,15 @@ export default function Mp4Player(props) {
 
           {/* Campos de Controle */}
           <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 1, alignItems: 'flex-start' }}>
+            <Button variant="contained" color="primary" disableElevation disabled={!videoUrl} onClick={() => { if (videoRef.current) videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - 10); }} sx={{ flex: '0 0 auto', alignSelf: 'center', minWidth: 0 }}>
+              <Replay10Icon />
+            </Button>
+            <Button variant="contained" color="primary" disableElevation disabled={!videoUrl} onClick={handlePlayPause} sx={{ flex: '0 0 auto', alignSelf: 'center', minWidth: 0 }}>
+              {isPaused ? <PlayArrowIcon /> : <PauseIcon />}
+            </Button>
+            <Button variant="contained" color="primary" disableElevation disabled={!videoUrl} onClick={() => { if (videoRef.current) videoRef.current.currentTime = Math.min(videoRef.current.duration || 0, videoRef.current.currentTime + 10); }} sx={{ flex: '0 0 auto', alignSelf: 'center', minWidth: 0 }}>
+              <Forward10Icon />
+            </Button>
             <FormControl size="small" sx={{ minWidth: 120, flex: '0 0 auto' }}>
               <InputLabel>Velocidade</InputLabel>
               <Select
@@ -598,7 +613,7 @@ export default function Mp4Player(props) {
 
         <Box sx={{ p: 0.5, maxWidth: '52vw' }}>
           <Box sx={{ pt: 1 }}>
-            <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold' }}>
+            <Typography variant="h5" sx={{ color: theme => theme.palette.mode === 'dark' ? '#fff' : '#22423A', fontWeight: 'bold' }}>
               Painel de Veiculos
             </Typography>
             <div className='gno-flex-column'>

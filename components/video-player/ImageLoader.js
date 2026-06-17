@@ -253,8 +253,9 @@ export default function ImageLoader(props) {
 
   const handleConfirmCompleteService = async () => {
     try {
-      // Export vehicles and axles as ZIP
-      await exportAsZip(storedVehicles, serviceTitle);
+      const classifiedTrackIds = new Set(storedVehicles.map(v => String(v.trackId)).filter(Boolean));
+      const unclassifiedFrames = (props.loadedRecords || []).filter(r => !classifiedTrackIds.has(String(r.track_id)));
+      await exportAsZip(storedVehicles, serviceTitle, unclassifiedFrames);
 
       // Clear all data
       localStorage.removeItem('vehicleList');
@@ -283,17 +284,19 @@ export default function ImageLoader(props) {
         <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
           {selectedVehicle && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="caption" sx={{ color: '#666', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Serviço</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#22423A', fontSize: '0.975rem' }} noWrap>{serviceTitle}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Esquerda</Typography>
-                <Typography variant="body2" sx={{ fontSize: '0.975rem' }}>{leftDirection}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" sx={{ color: '#2e7d32', fontWeight: 'bold', display: 'block', fontSize: '0.844rem' }}>Direita</Typography>
-                <Typography variant="body2" sx={{ fontSize: '0.975rem' }}>{rightDirection}</Typography>
+              <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                <Box>
+                  <Typography component="span" sx={{ color: 'text.secondary', fontWeight: 'bold', fontSize: '1.15rem' }}>Serviço: </Typography>
+                  <Typography component="span" sx={{ fontWeight: 600, color: 'primary.main', fontSize: '1.15rem' }}>{serviceTitle}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" component="span" sx={{ color: '#d32f2f', fontWeight: 'bold', fontSize: '0.844rem' }}>Esquerda: </Typography>
+                  <Typography variant="body2" component="span" sx={{ fontSize: '0.975rem' }}>{leftDirection}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" component="span" sx={{ color: '#2e7d32', fontWeight: 'bold', fontSize: '0.844rem' }}>Direita: </Typography>
+                  <Typography variant="body2" component="span" sx={{ fontSize: '0.975rem' }}>{rightDirection}</Typography>
+                </Box>
               </Box>
               <Button variant="contained" color="primary" onClick={handleAddNewVehicle}><AddIcon /></Button>
               <Button variant="contained" color="success" onClick={handleCompleteService} disabled={!serviceTitle || storedVehicles.length === 0} sx={{ whiteSpace: 'nowrap' }}>
@@ -306,7 +309,7 @@ export default function ImageLoader(props) {
         {selectedVehicle && (
           <Box sx={{ p: 0.5, maxWidth: '52vw' }}>
             <Box sx={{ pt: 1 }}>
-              <Typography variant="h5" sx={{ color: '#22423A', fontWeight: 'bold' }}>Painel de Veículos</Typography>
+              <Typography variant="h5" sx={{ color: theme => theme.palette.mode === 'dark' ? '#fff' : '#22423A', fontWeight: 'bold' }}>Painel de Veículos</Typography>
               <div className='gno-flex-column'>
                 <VehicleItemList vehicleList={getVehicleData('passeio')} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Passeio'} left={leftDirection} right={rightDirection} isNew={false}></VehicleItemList>
                 <VehicleItemList vehicleList={getVehicleData('onibus')} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Onibus'} left={leftDirection} right={rightDirection} isNew={false}></VehicleItemList>

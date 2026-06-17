@@ -259,12 +259,13 @@ export function exportAxles(vehicleList, serviceTitle = 'sem_titulo', downloadNo
 }
 
 /**
- * Export vehicle and axle data as a ZIP file containing both CSVs
+ * Export vehicle and axle data as a ZIP file containing both CSVs and a raw JSON backup
  * @param {Array} vehicleList - List of vehicles to export
  * @param {string} serviceTitle - Title of the service for filename
+ * @param {Array} unclassifiedFrames - Detections that were not classified by the user (frames mode only)
  * @returns {Promise<string>} - Promise that resolves to the ZIP filename
  */
-export async function exportAsZip(vehicleList, serviceTitle = 'sem_titulo') {
+export async function exportAsZip(vehicleList, serviceTitle = 'sem_titulo', unclassifiedFrames = []) {
   if (!vehicleList || vehicleList.length === 0) {
     throw new Error('Nenhum registro para exportar');
   }
@@ -276,10 +277,18 @@ export async function exportAsZip(vehicleList, serviceTitle = 'sem_titulo') {
   const vehicleData = exportVehicles(vehicleList, serviceTitle, false);
   const axleData = exportAxles(vehicleList, serviceTitle, false);
 
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
+
+  // Build raw JSON backup
+  const jsonContent = JSON.stringify({ vehicleList, unclassifiedFrames }, null, 2);
+  const jsonFilename = `${sanitizedTitle}_dados_${ts}.json`;
+
   // Create ZIP file
   const zip = new JSZip();
   zip.file(vehicleData.filename, vehicleData.content);
   zip.file(axleData.filename, axleData.content);
+  zip.file(jsonFilename, jsonContent);
 
   // Generate ZIP blob
   const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -288,8 +297,6 @@ export async function exportAsZip(vehicleList, serviceTitle = 'sem_titulo') {
   const url = URL.createObjectURL(zipBlob);
   const a = document.createElement('a');
   a.href = url;
-  const ts = new Date().toISOString().replace(/[:.]/g, '-');
-  const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
   const zipFilename = `${sanitizedTitle}_export_${ts}.zip`;
   a.download = zipFilename;
   document.body.appendChild(a);
