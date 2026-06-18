@@ -15,13 +15,14 @@ import {
 import DescriptionIcon from '@mui/icons-material/Description';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-export default function CompleteServiceModal({ 
-  open, 
-  onClose, 
-  onConfirm, 
+export default function CompleteServiceModal({
+  open,
+  onClose,
+  onConfirm,
   serviceTitle,
   vehicleFileName,
-  axleFileName 
+  axleFileName,
+  completedItems = []
 }) {
   const [confirmed, setConfirmed] = useState(false);
 
@@ -78,6 +79,19 @@ export default function CompleteServiceModal({
             </Typography>
           </Box>
         </Box>
+
+        {completedItems.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+              Contagem Concluída para os itens:
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, pl: 1 }}>
+              {completedItems.map((item, i) => (
+                <Typography key={i} variant="body2">{item}</Typography>
+              ))}
+            </Box>
+          </Box>
+        )}
 
         <FormControlLabel
           control={

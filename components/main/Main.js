@@ -316,6 +316,7 @@ export default function Main() {
                     loadVersion={loadVersion}
                     projectConfig={projectConfig}
                     onFolderEnd={handleProjectNextFolder}
+                    completedItems={projectData.folders.map(f => f.name)}
                 />
             ) : (
                 <Mp4Player
@@ -327,6 +328,7 @@ export default function Main() {
                     continueFromLast={continueFromLast}
                     projectConfig={projectConfig}
                     onFolderEnd={handleProjectNextFolder}
+                    completedItems={projectData.folders.map(f => f.name)}
                 />
             ))}
 

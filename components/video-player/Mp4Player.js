@@ -686,6 +686,7 @@ export default function Mp4Player(props) {
           serviceTitle={serviceTitle}
           vehicleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_contagem_veiculos_[timestamp].csv`}
           axleFileName={`${serviceTitle.replace(/[^a-z0-9_\-]/gi, '_')}_contagem_eixos_[timestamp].csv`}
+          completedItems={props.completedItems ?? []}
         />
       </Box>
     </>
