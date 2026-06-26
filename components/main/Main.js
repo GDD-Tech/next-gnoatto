@@ -36,12 +36,12 @@ export default function Main() {
     const [registros, setRegistros] = useState([]);
     const [imagens, setImagens] = useState({});
     const [resetRequest, setResetRequest] = useState(false);
-    const [currentFileName, setCurrentFileName] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('currentFileName') || null;
-        }
-        return null;
-    });
+    const [currentFileName, setCurrentFileName] = useState(null);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('currentFileName');
+        if (saved) setCurrentFileName(saved);
+    }, []);
     const [pendingFileData, setPendingFileData] = useState(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [clearVehiclesFlag, setClearVehiclesFlag] = useState(0);

@@ -10,6 +10,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import Replay10Icon from '@mui/icons-material/Replay10';
 import Forward10Icon from '@mui/icons-material/Forward10';
 import { getVehicleData } from "@/utils/staticVehicles";
+import { playCountSound } from "@/utils/soundUtils";
 import VehicleItemList from "./VehicleItemList";
 import BasicModal from "../modal/BasicModal";
 import NewVehicleModal from "../modal/NewVehicleModal";
@@ -316,19 +317,16 @@ export default function Mp4Player(props) {
     }
   };
 
-  // Ref para controlar o throttle do onTimeUpdate (evita re-renders excessivos a ~4x/seg)
   const timeUpdateRafRef = useRef(null);
+  const currentDateTimeRef = useRef('');
 
   const handleTimeUpdate = useCallback(() => {
     if (!isPaused && startDateTime) {
-      // Cancela o frame anterior se ainda não foi processado
       if (timeUpdateRafRef.current) {
         cancelAnimationFrame(timeUpdateRafRef.current);
       }
-      // Agenda a atualização no próximo frame de animação disponível
       timeUpdateRafRef.current = requestAnimationFrame(() => {
-        const calculatedDateTime = calculateCurrentDateTime();
-        setCurrentDateTime(calculatedDateTime);
+        currentDateTimeRef.current = calculateCurrentDateTime();
         timeUpdateRafRef.current = null;
       });
     }
@@ -382,6 +380,7 @@ export default function Mp4Player(props) {
     setStoredVehicles(updatedList);
     localStorage.setItem('vehicleList', JSON.stringify(updatedList));
 
+    playCountSound();
     handleToastMessage("Veículo adicionado!", "success");
   };
 
@@ -550,7 +549,7 @@ export default function Mp4Player(props) {
                   setCurrentDateTime(calculatedDateTime);
                 }}
                 onPlay={() => setIsPaused(false)}
-                onEnded={() => { if (typeof props.onFolderEnd === 'function') props.onFolderEnd(); }}
+                onEnded={() => setIsPaused(true)}
                 style={{ width: '100%', maxHeight: '600px', borderRadius: '8px' }}
               />
             </Box>

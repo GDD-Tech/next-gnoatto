@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import AddIcon from '@mui/icons-material/Add';
 import { getVehicleData } from "@/utils/staticVehicles";
 
+import { playCountSound } from "@/utils/soundUtils";
 import ImportFile from "./ImportFile";
 import VehicleItemList from "./VehicleItemList";
 import BasicModal from "../modal/BasicModal";
@@ -169,6 +170,7 @@ export default function ImageLoader(props) {
       localStorage.setItem('vehicleList', JSON.stringify(updatedList));
     }
 
+    playCountSound();
     handleToastMessage("Veículo adicionado!", "success");
     if (!exists) {
       // nothing special for now

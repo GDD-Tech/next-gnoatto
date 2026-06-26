@@ -1,3 +1,6 @@
+const EXPORT_TYPE_REMAP = { '4S3': '4DI', '3T6': '3M6' };
+const remapType = (type) => EXPORT_TYPE_REMAP[type] ?? type;
+
 /**
  * Export vehicle count data as CSV
  * @param {Array} vehicleList - List of vehicles to export
@@ -11,7 +14,7 @@ export function exportVehicles(vehicleList, serviceTitle = 'sem_titulo', downloa
   }
 
   // Define vehicle types in the exact order you want
-  const vehicleTypes = ['2E', '3E', '4E', '2CB', '3CB', '4CB', '2C (16)', '2C (22)', '3C', '4C', '2S2', '2S3', '2I3', '2J3', '3S2', '3S3', '4S3', '3I3', '3J3', '3T4', '3T6', '2C2', '2C3', '3C2', '3C3', '3D4', '3D6', 'Moto'];
+  const vehicleTypes = ['2E', '3E', '4E', '2CB', '3CB', '4CB', '2C (16)', '2C (22)', '3C', '4C', '2S2', '2S3', '2I3', '2J3', '3S2', '3S3', '4DI', '3I3', '3J3', '3T4', '3M6', '2C2', '2C3', '3C2', '3C3', '3D4', '3D6', 'Moto'];
 
   // Group by date -> fromTo (De Para) -> 15-minute time slots
   const grouped = {};
@@ -19,7 +22,7 @@ export function exportVehicles(vehicleList, serviceTitle = 'sem_titulo', downloa
   vehicleList.forEach((v) => {
     const date = v.date ?? v.time?.split(' ')[0] ?? 'unknown';
     const time = v.time ?? '00:00';
-    const type = v.type ?? 'Desconhecido';
+    const type = remapType(v.type ?? 'Desconhecido');
     const fromTo = v.fromTo ?? v.from_to ?? '';
 
     // Extract hour and minute from time (format: "HH:MM")
@@ -154,7 +157,7 @@ export function exportAxles(vehicleList, serviceTitle = 'sem_titulo', downloadNo
   };
 
   // Define vehicle types in the exact order
-  const vehicleTypes = ['2E', '3E', '4E', '2CB', '3CB', '4CB', '2C (16)', '2C (22)', '3C', '4C', '2S2', '2S3', '2I3', '2J3', '3S2', '3S3', '4S3', '3I3', '3J3', '3T4', '3T6', '2C2', '2C3', '3C2', '3C3', '3D4', '3D6', 'Moto'];
+  const vehicleTypes = ['2E', '3E', '4E', '2CB', '3CB', '4CB', '2C (16)', '2C (22)', '3C', '4C', '2S2', '2S3', '2I3', '2J3', '3S2', '3S3', '4DI', '3I3', '3J3', '3T4', '3M6', '2C2', '2C3', '3C2', '3C3', '3D4', '3D6', 'Moto'];
 
   // Group by date -> fromTo (De Para) -> 15-minute time slots
   const grouped = {};
@@ -162,12 +165,13 @@ export function exportAxles(vehicleList, serviceTitle = 'sem_titulo', downloadNo
   vehicleList.forEach((v) => {
     const date = v.date ?? v.time?.split(' ')[0] ?? 'unknown';
     const time = v.time ?? '00:00';
-    const type = v.type ?? 'Desconhecido';
+    const rawType = v.type ?? 'Desconhecido';
+    const type = remapType(rawType);
     const fromTo = v.fromTo ?? v.from_to ?? '';
     const raisedAxles = parseInt(v.raisedAxles ?? 0, 10);
 
-    // Get base axle count for this vehicle type
-    const baseAxles = axleMapping[type] ?? 0;
+    // Get base axle count for this vehicle type (use original name for axle lookup)
+    const baseAxles = axleMapping[rawType] ?? 0;
     // Calculate effective axles: base axles - raised axles
     const effectiveAxles = Math.max(0, baseAxles - raisedAxles);
 

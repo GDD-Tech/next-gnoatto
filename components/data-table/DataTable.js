@@ -18,6 +18,13 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import { Box, Checkbox, FormControlLabel } from "@mui/material";
 
+function formatVideoTime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  return [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+}
+
 export default function DataTable({ vehicleList = [], onDelete, onDeleteAll, openResetDialog = false, onResetDialogOpened }) {
 
     const getLastTen = (arr) => {
@@ -151,7 +158,7 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll, ope
                                 const key = v.id ?? v.track_id ?? v._id ?? idx;
                                 return (
                                     <TableRow key={key} hover>
-                                        <TableCell>{v.trackId ?? "-"}</TableCell>
+                                        <TableCell>{v.videoTime > 0 ? formatVideoTime(v.videoTime) : (v.trackId || "-")}</TableCell>
                                         <TableCell>{v.fromTo ?? v.from_to ?? "-"}</TableCell>
                                         <TableCell>{v.type ?? "-"}</TableCell>
                                         <TableCell>{v.raisedAxles ?? v.raised_axles ?? "-"}</TableCell>
