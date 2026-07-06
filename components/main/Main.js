@@ -1,9 +1,9 @@
 'use client'
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainHeader from "@/components/main-header/MainHeader";
 import ImageLoader from "@/components/video-player/ImageLoader";
 import Mp4Player from "@/components/video-player/Mp4Player";
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 
 export default function Main() {
     const [mode, setMode] = useState('zip'); // 'zip' or 'mp4'
@@ -11,18 +11,16 @@ export default function Main() {
     const [registros, setRegistros] = useState([]);
     const [imagens, setImagens] = useState({});
     const [resetRequest, setResetRequest] = useState(false);
-    const [currentFileName, setCurrentFileName] = useState(() => {
-        // Load filename from localStorage on mount (only on client-side)
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('currentFileName') || null;
-        }
-        return null;
-    });
+    const [currentFileName, setCurrentFileName] = useState(null);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('currentFileName');
+        if (saved) setCurrentFileName(saved);
+    }, []);
     const [pendingFileData, setPendingFileData] = useState(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [clearVehiclesFlag, setClearVehiclesFlag] = useState(0);
     const [importConflictType, setImportConflictType] = useState(null); // 'different_file' | 'same_file'
-    const [showContinueDialog, setShowContinueDialog] = useState(false);
     const [continueFromLast, setContinueFromLast] = useState(false);
     const [loadVersion, setLoadVersion] = useState(0);
 
@@ -41,10 +39,8 @@ export default function Main() {
                 setImportConflictType('different_file');
                 setShowConfirmDialog(true);
             } else if (filename === storedFileName) {
-                // Same file, existing records -> Ask to continue from last
-                setPendingFileData({ result, filename, type: 'zip' });
-                setImportConflictType('same_file');
-                setShowContinueDialog(true);
+                // Same file, existing records -> Auto-continue silently
+                applyFileData(result, filename, true);
             } else {
                 // Should ideally not happen if hasRecords is true but no storedFileName, consider as different
                 setPendingFileData({ result, filename, type: 'zip' });
@@ -61,7 +57,10 @@ export default function Main() {
         const records = result?.tempRegistros ?? [];
         const images = result?.tempImagens ?? {};
         setRegistros(records);
-        setImagens(images);
+        setImagens(prev => {
+            Object.values(prev).forEach(url => { try { URL.revokeObjectURL(url); } catch (_) {} });
+            return images;
+        });
         setCurrentFileName(filename);
         // Save filename to localStorage
         if (typeof window !== 'undefined') {
@@ -85,10 +84,8 @@ export default function Main() {
                 setPendingFileData({ file, filename: file.name, type: 'mp4' });
                 setShowConfirmDialog(true);
             } else {
-                // Same file - ask to continue from last
-                setImportConflictType('same_file');
-                setPendingFileData({ file, filename: file.name, type: 'mp4' });
-                setShowContinueDialog(true);
+                // Same file - auto-continue silently
+                applyMp4Data(file, true);
             }
         } else {
             // Load directly
@@ -142,42 +139,6 @@ export default function Main() {
         setImportConflictType(null);
     }
 
-    function handleContinueFromLast() {
-        if (pendingFileData) {
-            if (pendingFileData.type === 'zip') {
-                applyFileData(pendingFileData.result, pendingFileData.filename, true);
-            } else if (pendingFileData.type === 'mp4') {
-                applyMp4Data(pendingFileData.file, true);
-            }
-        }
-        setShowContinueDialog(false);
-        setPendingFileData(null);
-        setImportConflictType(null);
-    }
-
-    function handleStartFromBeginning() {
-        // Clear existing records
-        if (typeof window === 'undefined') return;
-        localStorage.removeItem('vehicleList');
-        setClearVehiclesFlag(prev => prev + 1);
-
-        if (pendingFileData) {
-            if (pendingFileData.type === 'zip') {
-                applyFileData(pendingFileData.result, pendingFileData.filename, false);
-            } else if (pendingFileData.type === 'mp4') {
-                applyMp4Data(pendingFileData.file, false);
-            }
-        }
-        setShowContinueDialog(false);
-        setPendingFileData(null);
-        setImportConflictType(null);
-    }
-
-    function handleCancelContinue() {
-        setShowContinueDialog(false);
-        setPendingFileData(null);
-        setImportConflictType(null);
-    }
 
     return (
         <>
@@ -254,30 +215,6 @@ export default function Main() {
                     </Button>
                     <Button onClick={handleKeepDataAndLoad} variant="contained" color="primary" size="small" sx={{ fontSize: '0.75rem' }}>
                         {importConflictType === 'same_file' ? 'Manter Dados' : 'Manter Contagem'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Dialog para continuar do último registro */}
-            <Dialog open={showContinueDialog} onClose={handleCancelContinue}>
-                <DialogTitle>Continuar de onde parou?</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Este arquivo já foi importado anteriormente e existem registros salvos.
-                    </DialogContentText>
-                    <DialogContentText sx={{ mt: 2 }}>
-                        Deseja continuar de onde parou ou começar uma nova contagem?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCancelContinue} color="inherit" size="small" sx={{ fontSize: '0.75rem' }}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={handleStartFromBeginning} variant="outlined" color="warning" size="small" sx={{ fontSize: '0.75rem' }}>
-                        Reiniciar
-                    </Button>
-                    <Button onClick={handleContinueFromLast} variant="contained" color="primary" size="small" sx={{ fontSize: '0.75rem' }}>
-                        Continuar
                     </Button>
                 </DialogActions>
             </Dialog>
