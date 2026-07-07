@@ -153,7 +153,8 @@ export default function ImageLoader(props) {
       category: label ?? vehicleLabel,
       raisedAxles: axles,
       fileName: props.fileName || '',
-      videoTime: 0
+      videoTime: 0,
+      frame: selectedVehicle?.frame ?? null,
     }
 
     if (!isValidData(object)) {
