@@ -167,6 +167,10 @@ export default function Main() {
                     onResetHandled={() => setResetRequest(false)}
                     clearVehiclesFlag={clearVehiclesFlag}
                     continueFromLast={continueFromLast}
+                    onServiceCompleted={() => {
+                        setCurrentFileName(null);
+                        setVideoFile(null);
+                    }}
                 />
             )}
 

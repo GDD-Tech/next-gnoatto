@@ -481,9 +481,11 @@ export default function Mp4Player(props) {
       setLeftDirection('');
       setRightDirection('');
       setStartDateTime(null);
+      localStorage.removeItem('currentFileName');
 
       setCompleteServiceOpen(false);
       handleToastMessage("Serviço completado com sucesso!", "success");
+      if (typeof props.onServiceCompleted === 'function') props.onServiceCompleted();
     } catch (error) {
       console.error('Error completing service:', error);
       handleToastMessage("Erro ao completar serviço: " + error.message, "error");
