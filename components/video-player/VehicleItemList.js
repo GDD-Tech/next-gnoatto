@@ -21,8 +21,8 @@ function VehicleItemList({ vehicleList, label, onVehicleClick, onHandleDirection
       <Typography variant="h6" sx={{ color: theme => theme.palette.mode === 'dark' ? '#fff' : '#22423A', fontWeight: 'bold', fontSize: '1.2rem' }}>{label}</Typography>
 
       <div className={classes.gnoVehicleList} >
-        {vehicleList.map((img, index) => (
-          <Box key={index} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', minWidth: 0 }} >
+        {vehicleList.map((img) => (
+          <Box key={img.id} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', minWidth: 0 }} >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: { xs: '2px', sm: '2px', md: '4px' } }}>
               <Button
                 sx={{

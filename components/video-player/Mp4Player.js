@@ -180,9 +180,6 @@ export default function Mp4Player(props) {
       return;
     }
 
-    // Se chegamos aqui, ou o arquivo mudou ou é o primeiro carregamento
-    console.log("Carregando novo vídeo:", file.name);
-
     // Revoga a URL anterior se existir
     if (videoUrlRef.current) {
       URL.revokeObjectURL(videoUrlRef.current);
@@ -235,21 +232,6 @@ export default function Mp4Player(props) {
       }
     };
   }, []);
-
-  const parseDateTime = (dateTimeStr) => {
-    // Parse DD/MM/YYYY hh:mm:ss
-    const regex = /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/;
-    const match = dateTimeStr.match(regex);
-    if (!match) return null;
-
-    const [, day, month, year, hours, minutes, seconds] = match;
-    return new Date(year, month - 1, day, hours, minutes, seconds);
-  };
-
-  const formatDateTime = (date) => {
-    const pad = (num) => String(num).padStart(2, '0');
-    return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-  };
 
   const calculateCurrentDateTime = useCallback(() => {
     if (!startDateTime || !videoRef.current) return '';
@@ -339,23 +321,13 @@ export default function Mp4Player(props) {
       return;
     }
 
-    // Calculate current date/time based on video position
     const videoTimeSeconds = videoRef.current.currentTime;
     const calculatedDate = startDateTime.add(videoTimeSeconds, 'second');
-    const calculatedDateTime = calculatedDate.format('DD/MM/YYYY HH:mm:ss');
 
-    // Update currentDateTime state
-    setCurrentDateTime(calculatedDateTime);
+    setCurrentDateTime(calculatedDate.format('DD/MM/YYYY HH:mm:ss'));
 
-    // Parse calculatedDateTime to extract date and time
-    const parsedDate = parseDateTime(calculatedDateTime);
-    if (!parsedDate) {
-      handleToastMessage("Data/hora inválida!", "error");
-      return;
-    }
-
-    const dateStr = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
-    const timeStr = `${String(parsedDate.getHours()).padStart(2, '0')}:${String(parsedDate.getMinutes()).padStart(2, '0')}:${String(parsedDate.getSeconds()).padStart(2, '0')}`;
+    const dateStr = calculatedDate.format('YYYY-MM-DD');
+    const timeStr = calculatedDate.format('HH:mm:ss');
 
     const object = {
       id: uuidv4(),
@@ -497,9 +469,11 @@ export default function Mp4Player(props) {
       setLeftDirection('');
       setRightDirection('');
       setStartDateTime(null);
+      localStorage.removeItem('currentFileName');
 
       setCompleteServiceOpen(false);
       handleToastMessage("Serviço completado com sucesso!", "success");
+      if (typeof props.onServiceCompleted === 'function') props.onServiceCompleted();
     } catch (error) {
       console.error('Error completing service:', error);
       handleToastMessage("Erro ao completar serviço: " + error.message, "error");
@@ -590,17 +564,7 @@ export default function Mp4Player(props) {
               onClick={() => {
                 const video = videoRef.current;
                 if (!video) return;
-                const targetTime = video.currentTime + 1;
-
-                const onLoadedMetadata = () => {
-                  video.removeEventListener('loadedmetadata', onLoadedMetadata);
-                  video.currentTime = targetTime;
-                  video.playbackRate = playbackSpeed;
-                  video.play().then(() => setIsPaused(false)).catch(() => { });
-                };
-
-                video.addEventListener('loadedmetadata', onLoadedMetadata);
-                video.load();
+                video.currentTime = Math.min(video.currentTime + 1, video.duration || Infinity);
               }}
 
               sx={{ textTransform: 'none', flex: '0 0 auto', whiteSpace: 'nowrap', alignSelf: 'center' }}

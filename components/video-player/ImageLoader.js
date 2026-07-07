@@ -122,7 +122,6 @@ export default function ImageLoader(props) {
         setStoredVehicles([]);
         setLeftDirection('');
         setRightDirection('');
-        setStoredVehicles([]);
       } else {
         setStoredVehicles(JSON.parse(stored));
       }
@@ -161,10 +160,7 @@ export default function ImageLoader(props) {
       return;
     }
 
-    const updatedList = [...storedVehicles];
-    const exists = updatedList.some(v => v.trackId === object.trackId);
-
-    updatedList.push(object);
+    const updatedList = [...storedVehicles, object];
     setStoredVehicles(updatedList);
     if (typeof window !== 'undefined') {
       localStorage.setItem('vehicleList', JSON.stringify(updatedList));
@@ -172,9 +168,6 @@ export default function ImageLoader(props) {
 
     playCountSound();
     handleToastMessage("Veículo adicionado!", "success");
-    if (!exists) {
-      // nothing special for now
-    }
 
     if (!isNew) {
       try {

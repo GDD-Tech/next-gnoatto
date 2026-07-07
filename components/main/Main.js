@@ -24,12 +24,12 @@ export default function Main() {
         });
     };
 
-    const theme = createTheme({
+    const theme = useMemo(() => createTheme({
         palette: {
             mode: darkMode ? 'dark' : 'light',
             primary: { main: darkMode ? '#4a9d84' : '#22423A' },
         },
-    });
+    }), [darkMode]);
 
     const [mode, setMode] = useState('zip'); // 'zip' or 'mp4'
     const [videoFile, setVideoFile] = useState(null);
@@ -53,6 +53,20 @@ export default function Main() {
     // Project mode state
     const [projectData, setProjectData] = useState(null);
     const [currentFolderIndex, setCurrentFolderIndex] = useState(0);
+
+    useEffect(() => {
+        return () => {
+            if (projectData) {
+                projectData.folders.forEach(folder => {
+                    Object.values(folder.images ?? {}).forEach(url => {
+                        try { URL.revokeObjectURL(url); } catch (_) {}
+                    });
+                });
+            }
+        };
+    }, [projectData]);
+
+    const completedItems = useMemo(() => projectData?.folders.map(f => f.name) ?? [], [projectData]);
 
     // Derived values: in project mode these override the regular state
     const isProjectMode = Boolean(projectData);
@@ -215,6 +229,8 @@ export default function Main() {
         if (pendingFileData) {
             if (pendingFileData.type === 'project') {
                 applyProjectData(pendingFileData.data);
+            } else if (pendingFileData.type === 'mp4') {
+                applyMp4Data(pendingFileData.file);
             } else {
                 applyFileData(pendingFileData.result, pendingFileData.filename);
             }
@@ -316,7 +332,7 @@ export default function Main() {
                     loadVersion={loadVersion}
                     projectConfig={projectConfig}
                     onFolderEnd={handleProjectNextFolder}
-                    completedItems={projectData.folders.map(f => f.name)}
+                    completedItems={completedItems}
                 />
             ) : (
                 <Mp4Player
@@ -328,7 +344,11 @@ export default function Main() {
                     continueFromLast={continueFromLast}
                     projectConfig={projectConfig}
                     onFolderEnd={handleProjectNextFolder}
-                    completedItems={projectData.folders.map(f => f.name)}
+                    completedItems={completedItems}
+                    onServiceCompleted={() => {
+                        setCurrentFileName(null);
+                        setVideoFile(null);
+                    }}
                 />
             ))}
 
