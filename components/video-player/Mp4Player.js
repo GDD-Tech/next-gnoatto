@@ -101,11 +101,17 @@ export default function Mp4Player(props) {
     if (title) setServiceTitle(title);
     if (left) setLeftDirection(left);
     if (right) setRightDirection(right);
-    if (dt) setStartDateTime(dayjs(dt));
     if (typeof window !== 'undefined') {
       if (title) localStorage.setItem('serviceTitle', title);
       if (left) localStorage.setItem('leftDirection', left);
       if (right) localStorage.setItem('rightDirection', right);
+      if (dt) {
+        const dtObj = dayjs(dt);
+        setStartDateTime(dtObj);
+        // Pre-save so the clearVehiclesFlag effect doesn't overwrite with null
+        const currentFileName = localStorage.getItem('currentFileName');
+        if (currentFileName) localStorage.setItem(`startDateTime_${currentFileName}`, dtObj.toISOString());
+      }
     }
   }, [props.projectConfig]);
 
