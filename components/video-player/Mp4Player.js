@@ -213,18 +213,34 @@ export default function Mp4Player(props) {
       if (storedVehicles) {
         const vehicles = JSON.parse(storedVehicles);
         if (vehicles.length > 0) {
-          // Get the last vehicle's videoTime
           const lastVehicle = vehicles[vehicles.length - 1];
           const videoTime = lastVehicle.videoTime || 0;
-
           if (videoTime > 0) {
-            // Set video to that time
             videoRef.current.currentTime = videoTime;
           }
         }
       }
     }
   }, [props.continueFromLast, videoUrl]);
+
+  // ── Auto-recovery: detecta frames corrompidos e pula 1s à frente ──────────
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !videoUrl) return;
+
+    function onError() {
+      console.warn(`[AutoRecovery] Travamento detectado ${videoRef.current.currentTime}`)
+      jumpSecond(1);
+    }
+
+    video.addEventListener('error', onError);
+
+    return () => {
+      video.removeEventListener('error', onError);
+    };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoUrl]);
 
   // Limpeza final ao desmontar o componente
   useEffect(() => {
@@ -360,6 +376,22 @@ export default function Mp4Player(props) {
 
     playCountSound();
     handleToastMessage("Veículo adicionado!", "success");
+  };
+
+  const jumpSecond = (time = 1) => {
+    const video = videoRef.current;
+    if (!video) return;
+    const targetTime = video.currentTime + time;
+
+    const onLoadedMetadata = () => {
+      video.removeEventListener('loadedmetadata', onLoadedMetadata);
+      video.currentTime = targetTime;
+      video.playbackRate = playbackSpeed;
+      video.play().then(() => setIsPaused(false)).catch(() => { });
+    };
+
+    video.addEventListener('loadedmetadata', onLoadedMetadata);
+    video.load();
   };
 
   function handleToastMessage(message, type) {
@@ -567,12 +599,7 @@ export default function Mp4Player(props) {
               color="primary"
               disableElevation
               disabled={!videoUrl}
-              onClick={() => {
-                const video = videoRef.current;
-                if (!video) return;
-                video.currentTime = Math.min(video.currentTime + 1, video.duration || Infinity);
-              }}
-
+              onClick={() => jumpSecond(1)}
               sx={{ textTransform: 'none', flex: '0 0 auto', whiteSpace: 'nowrap', alignSelf: 'center' }}
             >
               PULAR 1s
