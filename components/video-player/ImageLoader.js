@@ -145,6 +145,7 @@ export default function ImageLoader(props) {
     const object = {
       id: uuidv4(),
       trackId: isNew ? '' : selectedVehicle?.track_id,
+      sequenceId: isNew ? null : (selectedVehicle?.sequence_id ?? null),
       time: selectedVehicle?.time,
       date: selectedVehicle?.date,
       direction: direction === 'left' ? leftDirection : rightDirection,
@@ -300,7 +301,7 @@ export default function ImageLoader(props) {
               </Button>
             </Box>
           )}
-          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} onFolderComplete={props.onFolderEnd} />
+          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} onFolderComplete={props.onFolderEnd} fileName={props.fileName || ''} />
         </Box>
         {selectedVehicle && (
           <Box sx={{ p: 0.5, maxWidth: '52vw' }}>

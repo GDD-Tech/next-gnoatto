@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
-export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion, onFolderComplete }) {
+export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion, onFolderComplete, fileName = '' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -22,8 +22,14 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
 
 
   const getStatus = (registro) => {
-    if (!registro?.track_id) return "Pendente";
-    return storedVehicles.some(v => v.trackId === registro.track_id) ? "Completo" : "Pendente";
+    if (!registro) return "Pendente";
+    return storedVehicles.some(v => {
+      if (registro.sequence_id != null && v.sequenceId != null) {
+        return v.sequenceId === registro.sequence_id && v.fileName === fileName;
+      }
+      // Fallback para registros antigos sem sequenceId
+      return v.trackId && String(v.trackId) === String(registro.track_id);
+    }) ? "Completo" : "Pendente";
   };
 
   const handleNext = useCallback(() => {
