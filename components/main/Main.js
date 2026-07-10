@@ -4,6 +4,7 @@ import MainHeader from "@/components/main-header/MainHeader";
 import ImageLoader from "@/components/video-player/ImageLoader";
 import Mp4Player from "@/components/video-player/Mp4Player";
 import ProjectNavigation from "@/components/project-navigation/ProjectNavigation";
+import StartGuide from "@/components/main/StartGuide";
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -310,47 +311,51 @@ export default function Main() {
                 onToggleDarkMode={toggleDarkMode}
             />
 
-            {isProjectMode && (
-                <ProjectNavigation
-                    folders={projectData.folders}
-                    currentIndex={currentFolderIndex}
-                    onPrev={handleProjectPrevFolder}
-                    onNext={handleProjectNextFolder}
-                />
-            )}
-
-            {isProjectMode && (effectiveMode === 'zip' ? (
-                <ImageLoader
-                    key={`project-folder-${currentFolderIndex}`}
-                    loadedRecords={effectiveRegistros}
-                    loadedImages={effectiveImagens}
-                    resetRequest={resetRequest}
-                    onResetHandled={() => setResetRequest(false)}
-                    clearVehiclesFlag={clearVehiclesFlag}
-                    fileName={effectiveFileName}
-                    continueFromLast={continueFromLast}
-                    loadVersion={loadVersion}
-                    projectConfig={projectConfig}
-                    onFolderEnd={handleProjectNextFolder}
-                    completedItems={completedItems}
-                />
+            {!isProjectMode ? (
+                <StartGuide onLoadProject={loadProjectData} />
             ) : (
-                <Mp4Player
-                    key={`project-folder-${currentFolderIndex}`}
-                    videoFile={effectiveVideoFile}
-                    resetRequest={resetRequest}
-                    onResetHandled={() => setResetRequest(false)}
-                    clearVehiclesFlag={clearVehiclesFlag}
-                    continueFromLast={continueFromLast}
-                    projectConfig={projectConfig}
-                    onFolderEnd={handleProjectNextFolder}
-                    completedItems={completedItems}
-                    onServiceCompleted={() => {
-                        setCurrentFileName(null);
-                        setVideoFile(null);
-                    }}
-                />
-            ))}
+                <>
+                    <ProjectNavigation
+                        folders={projectData.folders}
+                        currentIndex={currentFolderIndex}
+                        onPrev={handleProjectPrevFolder}
+                        onNext={handleProjectNextFolder}
+                    />
+
+                    {effectiveMode === 'zip' ? (
+                        <ImageLoader
+                            key={`project-folder-${currentFolderIndex}`}
+                            loadedRecords={effectiveRegistros}
+                            loadedImages={effectiveImagens}
+                            resetRequest={resetRequest}
+                            onResetHandled={() => setResetRequest(false)}
+                            clearVehiclesFlag={clearVehiclesFlag}
+                            fileName={effectiveFileName}
+                            continueFromLast={continueFromLast}
+                            loadVersion={loadVersion}
+                            projectConfig={projectConfig}
+                            onFolderEnd={handleProjectNextFolder}
+                            completedItems={completedItems}
+                        />
+                    ) : (
+                        <Mp4Player
+                            key={`project-folder-${currentFolderIndex}`}
+                            videoFile={effectiveVideoFile}
+                            resetRequest={resetRequest}
+                            onResetHandled={() => setResetRequest(false)}
+                            clearVehiclesFlag={clearVehiclesFlag}
+                            continueFromLast={continueFromLast}
+                            projectConfig={projectConfig}
+                            onFolderEnd={handleProjectNextFolder}
+                            completedItems={completedItems}
+                            onServiceCompleted={() => {
+                                setCurrentFileName(null);
+                                setVideoFile(null);
+                            }}
+                        />
+                    )}
+                </>
+            )}
 
             {/* Confirmation Dialog — different file or project import */}
             <Dialog open={showConfirmDialog} onClose={handleCancelLoad}>
