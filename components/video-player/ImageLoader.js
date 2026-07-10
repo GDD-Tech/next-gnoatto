@@ -1,19 +1,19 @@
 'use client'
-import { Box, Button, Typography } from "@mui/material";
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import AddIcon from '@mui/icons-material/Add';
 import { getVehicleData } from "@/utils/staticVehicles";
+import AddIcon from '@mui/icons-material/Add';
+import { Box, Button, Typography } from "@mui/material";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
+import { exportAsZip } from "@/utils/exportUtils";
 import { playCountSound } from "@/utils/soundUtils";
-import ImportFile from "./ImportFile";
-import VehicleItemList from "./VehicleItemList";
+import DataTable from "../data-table/DataTable";
 import BasicModal from "../modal/BasicModal";
+import CompleteServiceModal from "../modal/CompleteServiceModal";
 import NewVehicleModal from "../modal/NewVehicleModal";
 import Toaster from "../toaster/Toaster";
-import DataTable from "../data-table/DataTable";
-import CompleteServiceModal from "../modal/CompleteServiceModal";
-import { exportAsZip } from "@/utils/exportUtils";
+import ImportFile from "./ImportFile";
+import VehicleItemList from "./VehicleItemList";
 
 export default function ImageLoader(props) {
   // props.projectConfig: { serviceTitle, leftDirection, rightDirection } — set when in project mode
@@ -267,6 +267,7 @@ export default function ImageLoader(props) {
 
       setCompleteServiceOpen(false);
       handleToastMessage("Serviço completado com sucesso!", "success");
+      if (typeof props.onServiceCompleted === 'function') props.onServiceCompleted();
     } catch (error) {
       console.error('Error completing service:', error);
       handleToastMessage("Erro ao completar serviço: " + error.message, "error");
@@ -277,11 +278,12 @@ export default function ImageLoader(props) {
 
   return (
     <>
-      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', p: 1 }}>
-        <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 2, justifyContent: 'center', p: 1 }}>
+        <Box sx={{ p: 0.5, width: '100%', maxWidth: { xs: '100%', lg: '48vw' } }}>
           {selectedVehicle && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-              <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+              {/* Desktop info layout */}
+              <Box sx={{ display: { xs: 'none', lg: 'flex' }, flex: 1, minWidth: 0, flexDirection: 'column', gap: 0.25 }}>
                 <Box>
                   <Typography component="span" sx={{ color: 'text.secondary', fontWeight: 'bold', fontSize: '1.15rem' }}>Serviço: </Typography>
                   <Typography component="span" sx={{ fontWeight: 600, color: 'primary.main', fontSize: '1.15rem' }}>{serviceTitle}</Typography>
@@ -304,9 +306,11 @@ export default function ImageLoader(props) {
           <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} onFolderComplete={props.onFolderEnd} fileName={props.fileName || ''} />
         </Box>
         {selectedVehicle && (
-          <Box sx={{ p: 0.5, maxWidth: '52vw' }}>
+          <Box sx={{ p: 0.5, width: '100%', maxWidth: { xs: '100%', lg: '52vw' } }}>
             <Box sx={{ pt: 1 }}>
-              <Typography variant="h5" sx={{ color: theme => theme.palette.mode === 'dark' ? '#fff' : '#22423A', fontWeight: 'bold' }}>Painel de Veículos</Typography>
+              <Typography variant="h5" sx={{ color: theme => theme.palette.mode === 'dark' ? '#fff' : '#22423A', fontWeight: 'bold', mb: 1.5 }}>
+                Painel de Veículos
+              </Typography>
               <div className='gno-flex-column'>
                 <VehicleItemList vehicleList={getVehicleData('passeio')} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Passeio'} left={leftDirection} right={rightDirection} isNew={false}></VehicleItemList>
                 <VehicleItemList vehicleList={getVehicleData('onibus')} onVehicleClick={handleVehicleClick} onHandleDirection={handleDirection} label={'Onibus'} left={leftDirection} right={rightDirection} isNew={false}></VehicleItemList>

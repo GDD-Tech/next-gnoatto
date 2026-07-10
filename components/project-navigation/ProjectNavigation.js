@@ -31,7 +31,17 @@ export default function ProjectNavigation({ folders, currentIndex, onPrev, onNex
         {currentIndex + 1} / {folders.length}
       </Typography>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.75,
+        overflowX: 'auto',
+        maxWidth: { xs: '55vw', sm: '65vw', md: '75vw', lg: 'auto' },
+        whiteSpace: 'nowrap',
+        py: 0.5,
+        '&::-webkit-scrollbar': { display: 'none' },
+        'scrollbarWidth': 'none',
+      }}>
         {folders.map((folder, i) => (
           <Chip
             key={folder.name}

@@ -1,23 +1,23 @@
 'use client'
-import { Box, Button, Typography, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { exportAsZip } from "@/utils/exportUtils";
+import { playCountSound } from "@/utils/soundUtils";
+import { getVehicleData } from "@/utils/staticVehicles";
+import AddIcon from '@mui/icons-material/Add';
+import Forward10Icon from '@mui/icons-material/Forward10';
+import PauseIcon from '@mui/icons-material/Pause';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import Replay10Icon from '@mui/icons-material/Replay10';
+import { Box, Button, FormControl, InputLabel, MenuItem, Select, Typography } from "@mui/material";
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import AddIcon from '@mui/icons-material/Add';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import Replay10Icon from '@mui/icons-material/Replay10';
-import Forward10Icon from '@mui/icons-material/Forward10';
-import { getVehicleData } from "@/utils/staticVehicles";
-import { playCountSound } from "@/utils/soundUtils";
-import VehicleItemList from "./VehicleItemList";
+import DataTable from "../data-table/DataTable";
 import BasicModal from "../modal/BasicModal";
+import CompleteServiceModal from "../modal/CompleteServiceModal";
 import NewVehicleModal from "../modal/NewVehicleModal";
 import Toaster from "../toaster/Toaster";
-import DataTable from "../data-table/DataTable";
-import CompleteServiceModal from "../modal/CompleteServiceModal";
-import { exportAsZip } from "@/utils/exportUtils";
+import VehicleItemList from "./VehicleItemList";
 
 // Configure dayjs to use Brazilian Portuguese
 dayjs.locale('pt-br');
@@ -520,8 +520,8 @@ export default function Mp4Player(props) {
 
   return (
     <>
-      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', p: 1 }}>
-        <Box sx={{ p: 0.5, width: '100%', maxWidth: '48vw' }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 2, justifyContent: 'center', p: 1 }}>
+        <Box sx={{ p: 0.5, width: '100%', maxWidth: { xs: '100%', lg: '48vw' } }}>
           {/* Info bar: serviço + direções + ações */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
             <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
@@ -607,9 +607,9 @@ export default function Mp4Player(props) {
           </Box>
         </Box>
 
-        <Box sx={{ p: 0.5, maxWidth: '52vw' }}>
+        <Box sx={{ p: 0.5, width: '100%', maxWidth: { xs: '100%', lg: '52vw' } }}>
           <Box sx={{ pt: 1 }}>
-            <Typography variant="h5" sx={{ color: theme => theme.palette.mode === 'dark' ? '#fff' : '#22423A', fontWeight: 'bold' }}>
+            <Typography variant="h5" sx={{ color: theme => theme.palette.mode === 'dark' ? '#fff' : '#22423A', fontWeight: 'bold', mb: 1.5 }}>
               Painel de Veiculos
             </Typography>
             <div className='gno-flex-column'>

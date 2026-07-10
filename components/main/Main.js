@@ -5,7 +5,7 @@ import ImageLoader from "@/components/video-player/ImageLoader";
 import Mp4Player from "@/components/video-player/Mp4Player";
 import ProjectNavigation from "@/components/project-navigation/ProjectNavigation";
 import StartGuide from "@/components/main/StartGuide";
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography, Fab } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
@@ -298,6 +298,22 @@ export default function Main() {
         setImportConflictType(null);
     }
 
+    function handleServiceCompleted() {
+        if (typeof window !== 'undefined') {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('startDateTime_')) {
+                    localStorage.removeItem(key);
+                }
+            }
+        }
+        setProjectData(null);
+        setCurrentFileName(null);
+        setVideoFile(null);
+        setRegistros([]);
+        setImagens({});
+    }
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -336,6 +352,7 @@ export default function Main() {
                             projectConfig={projectConfig}
                             onFolderEnd={handleProjectNextFolder}
                             completedItems={completedItems}
+                            onServiceCompleted={handleServiceCompleted}
                         />
                     ) : (
                         <Mp4Player
@@ -348,10 +365,7 @@ export default function Main() {
                             projectConfig={projectConfig}
                             onFolderEnd={handleProjectNextFolder}
                             completedItems={completedItems}
-                            onServiceCompleted={() => {
-                                setCurrentFileName(null);
-                                setVideoFile(null);
-                            }}
+                            onServiceCompleted={handleServiceCompleted}
                         />
                     )}
                 </>
