@@ -116,7 +116,7 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
             {JSON.stringify(registroAtual, null, 2)}
           </pre> */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1 }}>
-            <div><strong>Id:</strong> {registroAtual.track_id}</div>
+            <div><strong>Id:</strong> {registroAtual.sequence_id ?? registroAtual.track_id}</div>
             <div><strong>Horario:</strong> {registroAtual.time}</div>
             <div><strong>Status:</strong> {(() => { const s = getStatus(registroAtual); return <span style={{ color: s === "Completo" ? "#22C55E" : "#EF4444" }}>{s}</span>; })()}</div>
           </Box>

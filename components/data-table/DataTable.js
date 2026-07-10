@@ -139,7 +139,7 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll, ope
                                 const key = v.id ?? v.track_id ?? v._id ?? idx;
                                 return (
                                     <TableRow key={key} hover>
-                                        <TableCell>{v.videoTime > 0 ? (v.time || "-") : (v.trackId || "-")}</TableCell>
+                                        <TableCell>{v.videoTime > 0 ? (v.time || "-") : ((v.sequenceId ?? v.trackId) || "-")}</TableCell>
                                         <TableCell>{v.fromTo ?? v.from_to ?? "-"}</TableCell>
                                         <TableCell>{v.type ?? "-"}</TableCell>
                                         <TableCell>{v.raisedAxles ?? v.raised_axles ?? "-"}</TableCell>
