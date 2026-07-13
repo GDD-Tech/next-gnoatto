@@ -7,13 +7,10 @@ function getLastTen(arr) {
     return last.reverse();
 }
 
-function formatVideoTime(seconds) {
-    const s = Math.floor(seconds);
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
-    if (h > 0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+function formatEventDateTime(v) {
+    if (!v.date || !v.time) return null;
+    const [year, month, day] = v.date.split('-');
+    return `${day}/${month}/${year} ${v.time}`;
 }
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -127,7 +124,7 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll, ope
                     <Table size="small">
                         <TableHead>
                             <TableRow>
-                                <TableCell><strong>Id</strong></TableCell>
+                                <TableCell><strong>Horário</strong></TableCell>
                                 <TableCell><strong>Direção</strong></TableCell>
                                 <TableCell><strong>Tipo</strong></TableCell>
                                 <TableCell><strong>Eixos Erguidos</strong></TableCell>
@@ -148,7 +145,7 @@ export default function DataTable({ vehicleList = [], onDelete, onDeleteAll, ope
                                 const key = v.id ?? v.track_id ?? v._id ?? idx;
                                 return (
                                     <TableRow key={key} hover>
-                                        <TableCell>{v.videoTime > 0 ? formatVideoTime(v.videoTime) : (v.trackId || "-")}</TableCell>
+                                        <TableCell>{formatEventDateTime(v) || v.trackId || "-"}</TableCell>
                                         <TableCell>{v.fromTo ?? v.from_to ?? "-"}</TableCell>
                                         <TableCell>{v.type ?? "-"}</TableCell>
                                         <TableCell>{v.raisedAxles ?? v.raised_axles ?? "-"}</TableCell>
