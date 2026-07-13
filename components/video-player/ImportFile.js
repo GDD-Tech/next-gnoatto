@@ -1,34 +1,25 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import * as React from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
 export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Efeito 1: Sempre que uma nova carga for iniciada (loadVersion muda),
-  // reseta para o primeiro registro. Este efeito roda ANTES do Efeito 2.
+  // Ao carregar nova versão, posiciona no índice correto: último tratado+1 se continuar, ou 0
   useEffect(() => {
     if (!registros || registros.length === 0) return;
-    setCurrentIndex(0);
-    if (typeof onVehicleSelect === 'function') onVehicleSelect(registros[0]);
+    let targetIndex = 0;
+    if (startTrackId) {
+      const foundIndex = registros.findIndex(r => String(r.track_id) === String(startTrackId));
+      if (foundIndex !== -1) {
+        targetIndex = Math.min(foundIndex + 1, registros.length - 1);
+      }
+    }
+    setCurrentIndex(targetIndex);
+    if (typeof onVehicleSelect === 'function') onVehicleSelect(registros[targetIndex]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadVersion]);
-
-  // Efeito 2: Se houver um startTrackId (continuar de onde parou),
-  // sobrescreve o índice definido pelo Efeito 1. Por ser declarado após,
-  // React garante que roda depois do Efeito 1 na mesma fase de commits.
-  useEffect(() => {
-    if (!startTrackId || !registros || registros.length === 0) return;
-    const foundIndex = registros.findIndex(r => String(r.track_id) === String(startTrackId));
-    if (foundIndex === -1) return;
-    // Avança um após o último tratado (próximo a processar)
-    const nextIndex = Math.min(foundIndex + 1, registros.length - 1);
-    setCurrentIndex(nextIndex);
-    if (typeof onVehicleSelect === 'function') onVehicleSelect(registros[nextIndex]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startTrackId, loadVersion]);
 
 
   const getStatus = (registro) => {
@@ -111,7 +102,7 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
           <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1 }}>
             <div><strong>Id:</strong> {registroAtual.track_id}</div>
             <div><strong>Horario:</strong> {registroAtual.time}</div>
-            <div><strong>Status:</strong> <span style={{ color: getStatus(registroAtual) === "Completo" ? "#22C55E" : "#EF4444" }}>{getStatus(registroAtual)}</span></div>
+            <div><strong>Status:</strong> {(() => { const s = getStatus(registroAtual); return <span style={{ color: s === "Completo" ? "#22C55E" : "#EF4444" }}>{s}</span>; })()}</div>
           </Box>
 
           {/* ⏮️ ⏭️ Navegação */}

@@ -30,25 +30,13 @@ export default function ImageLoader(props) {
   const [isNewVehicle, setIsNewVehicle] = useState(false);
   const [completeServiceOpen, setCompleteServiceOpen] = useState(false);
 
-  // Calcula o último trackId tratado de forma síncrona durante o render,
-  // garantindo que ImportFile já receba o valor correto antes de rodar seus efeitos.
   const startTrackId = useMemo(() => {
     if (!props.continueFromLast) return null;
-    if (typeof window === 'undefined') return null;
-    const storedVehiclesRaw = localStorage.getItem('vehicleList');
-    if (!storedVehiclesRaw) return null;
-    try {
-      const vehicles = JSON.parse(storedVehiclesRaw);
-      const lastVehicleWithTrackId = vehicles
-        .filter(v => v.trackId && v.trackId !== '')
-        .sort((a, b) => parseInt(b.trackId) - parseInt(a.trackId))[0];
-      return lastVehicleWithTrackId?.trackId ?? null;
-    } catch {
-      return null;
-    }
-  // props.loadVersion garante recomputo mesmo quando continueFromLast já era true
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.continueFromLast, props.loadVersion]);
+    const last = storedVehicles
+      .filter(v => v.trackId && v.trackId !== '')
+      .sort((a, b) => parseInt(b.trackId) - parseInt(a.trackId))[0];
+    return last?.trackId ?? null;
+  }, [props.continueFromLast, props.loadVersion, storedVehicles]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -105,7 +93,6 @@ export default function ImageLoader(props) {
         setStoredVehicles([]);
         setLeftDirection('');
         setRightDirection('');
-        setStoredVehicles([]);
       } else {
         setStoredVehicles(JSON.parse(stored));
       }
@@ -144,19 +131,13 @@ export default function ImageLoader(props) {
       return;
     }
 
-    const updatedList = [...storedVehicles];
-    const exists = updatedList.some(v => v.trackId === object.trackId);
-
-    updatedList.push(object);
+    const updatedList = [...storedVehicles, object];
     setStoredVehicles(updatedList);
     if (typeof window !== 'undefined') {
       localStorage.setItem('vehicleList', JSON.stringify(updatedList));
     }
 
     handleToastMessage("Veículo adicionado!", "success");
-    if (!exists) {
-      // nothing special for now
-    }
 
     if (!isNew) {
       try {
