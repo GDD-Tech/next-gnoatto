@@ -5,6 +5,7 @@ import ImageLoader from "@/components/video-player/ImageLoader";
 import Mp4Player from "@/components/video-player/Mp4Player";
 import ProjectNavigation from "@/components/project-navigation/ProjectNavigation";
 import StartGuide from "@/components/main/StartGuide";
+import ProjectCompletionScreen from "@/components/main/ProjectCompletionScreen";
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography, Fab } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -50,6 +51,7 @@ export default function Main() {
     const [showContinueDialog, setShowContinueDialog] = useState(false);
     const [continueFromLast, setContinueFromLast] = useState(false);
     const [loadVersion, setLoadVersion] = useState(0);
+    const [showCompletionScreen, setShowCompletionScreen] = useState(false);
 
     // Project mode state
     const [projectData, setProjectData] = useState(null);
@@ -299,6 +301,11 @@ export default function Main() {
     }
 
     function handleServiceCompleted() {
+        // Show completion screen first — reset happens when user clicks "Novo Projeto"
+        setShowCompletionScreen(true);
+    }
+
+    function handleCompletionDone() {
         if (typeof window !== 'undefined') {
             for (let i = localStorage.length - 1; i >= 0; i--) {
                 const key = localStorage.key(i);
@@ -307,6 +314,7 @@ export default function Main() {
                 }
             }
         }
+        setShowCompletionScreen(false);
         setProjectData(null);
         setCurrentFileName(null);
         setVideoFile(null);
@@ -317,6 +325,10 @@ export default function Main() {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
+
+            {showCompletionScreen && (
+                <ProjectCompletionScreen onNewProject={handleCompletionDone} />
+            )}
             <MainHeader
                 onLoadProject={loadProjectData}
                 onResetRequest={() => setResetRequest(true)}
