@@ -252,7 +252,11 @@ export default function ImageLoader(props) {
     try {
       const classifiedTrackIds = new Set(storedVehicles.map(v => String(v.trackId)).filter(Boolean));
       const unclassifiedFrames = (props.loadedRecords || []).filter(r => !classifiedTrackIds.has(String(r.track_id)));
-      await exportAsZip(storedVehicles, serviceTitle, unclassifiedFrames);
+      await exportAsZip(storedVehicles, serviceTitle, unclassifiedFrames, {
+        left: leftDirection,
+        right: rightDirection,
+        sequence: props.completedItems ?? [],
+      });
 
       // Clear all data
       localStorage.removeItem('vehicleList');

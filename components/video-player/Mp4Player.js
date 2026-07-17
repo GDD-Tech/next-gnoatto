@@ -490,7 +490,11 @@ export default function Mp4Player(props) {
   const handleConfirmCompleteService = async () => {
     try {
       // Export vehicles and axles as ZIP
-      await exportAsZip(storedVehicles, serviceTitle);
+      await exportAsZip(storedVehicles, serviceTitle, [], {
+        left: leftDirection,
+        right: rightDirection,
+        sequence: props.completedItems ?? [],
+      });
 
       // Clear all data
       const currentFileName = localStorage.getItem('currentFileName');

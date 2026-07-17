@@ -144,7 +144,7 @@ export function exportAxles(vehicleList, serviceTitle = 'sem_titulo', downloadNo
   return filename;
 }
 
-export async function exportAsZip(vehicleList, serviceTitle = 'sem_titulo', unclassifiedFrames = []) {
+export async function exportAsZip(vehicleList, serviceTitle = 'sem_titulo', unclassifiedFrames = [], details = {}) {
   if (!vehicleList || vehicleList.length === 0) {
     throw new Error('Nenhum registro para exportar');
   }
@@ -157,7 +157,16 @@ export async function exportAsZip(vehicleList, serviceTitle = 'sem_titulo', uncl
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const sanitizedTitle = serviceTitle.replace(/[^a-z0-9_\-]/gi, '_');
 
-  const jsonContent = JSON.stringify({ vehicleList, unclassifiedFrames }, null, 2);
+  const jsonContent = JSON.stringify({
+    details: {
+      projectName: serviceTitle,
+      left: details.left ?? '',
+      right: details.right ?? '',
+      sequence: details.sequence ?? [],
+    },
+    vehicleList,
+    unclassifiedFrames,
+  }, null, 2);
   const jsonFilename = `${sanitizedTitle}_dados_${ts}.json`;
 
   const zip = new JSZip();
