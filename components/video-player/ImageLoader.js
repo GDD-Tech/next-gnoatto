@@ -152,6 +152,8 @@ export default function ImageLoader(props) {
       fromTo: direction === 'left' ? (rightDirection + " - " + leftDirection) : (leftDirection + " - " + rightDirection),
       type: vehicle?.exportName ?? vehicleDetails?.exportName,
       category: label ?? vehicleLabel,
+      typeLabel: vehicle?.description ?? vehicleDetails?.description ?? '',
+      predictedClass: selectedVehicle?.class_name ?? selectedVehicle?.predicted_class ?? selectedVehicle?.class ?? '',
       raisedAxles: axles,
       fileName: props.fileName || '',
       videoTime: 0,

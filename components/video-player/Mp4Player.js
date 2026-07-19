@@ -360,6 +360,8 @@ export default function Mp4Player(props) {
       fromTo: direction === 'left' ? (rightDirection + " - " + leftDirection) : (leftDirection + " - " + rightDirection),
       type: vehicle?.exportName ?? vehicleDetails?.exportName,
       category: label ?? vehicleLabel,
+      typeLabel: vehicle?.description ?? vehicleDetails?.description ?? '',
+      predictedClass: '',
       raisedAxles: axles,
       fileName: props.videoFile?.name || '',
       videoTime: videoRef.current?.currentTime || 0
