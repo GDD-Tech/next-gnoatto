@@ -47,14 +47,14 @@ export default function BasicModal({ isOpen, onClose, vehicle, left, right, dire
           Selecione a quantidade de eixos erguidos. {vehicle?.description}
         </Typography>
 
-        {['none', 'left'].includes(direction) &&
+        {['none', 'right'].includes(direction) &&
           <div style={{ marginTop: '8px' }}>
             <Typography variant="subtitle2" color='error'>
-              <strong>Direção:</strong> {left}
+              <strong>Direção:</strong> {right}
             </Typography>
             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
               {eixoList.map((eixo) => (
-                <Button key={eixo.id} variant="contained" color="primary" onClick={() => handleAxles('left', eixo.value)}>
+                <Button key={eixo.id} variant="contained" color="primary" onClick={() => handleAxles('right', eixo.value)}>
                   {eixo.value}
                 </Button>
               ))}
@@ -62,14 +62,14 @@ export default function BasicModal({ isOpen, onClose, vehicle, left, right, dire
           </div>
         }
 
-        {['none', 'right'].includes(direction) &&
+        {['none', 'left'].includes(direction) &&
           <div style={{ marginTop: '8px' }}>
             <Typography variant="subtitle2" color='success'>
-              <strong>Direção:</strong> {right}
+              <strong>Direção:</strong> {left}
             </Typography>
             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
               {eixoList.map((eixo) => (
-                <Button key={eixo.id} variant="contained" color="primary" onClick={() => handleAxles('right', eixo.value)}>
+                <Button key={eixo.id} variant="contained" color="primary" onClick={() => handleAxles('left', eixo.value)}>
                   {eixo.value}
                 </Button>
               ))}
