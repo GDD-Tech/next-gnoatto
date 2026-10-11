@@ -30,7 +30,14 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
     if (!registros || registros.length === 0) return;
     let targetIndex = 0;
     if (startTrackId) {
-      const foundIndex = registros.findIndex(r => String(r.track_id) === String(startTrackId));
+      const lastStored = storedVehicles[storedVehicles.length - 1];
+      let foundIndex = -1;
+      if (lastStored?.sequenceId != null) {
+        foundIndex = registros.findIndex(r => r.sequence_id != null && String(r.sequence_id) === String(lastStored.sequenceId));
+      }
+      if (foundIndex === -1) {
+        foundIndex = registros.findIndex(r => String(r.track_id) === String(startTrackId));
+      }
       if (foundIndex !== -1) {
         targetIndex = Math.min(foundIndex + 1, registros.length - 1);
       }
