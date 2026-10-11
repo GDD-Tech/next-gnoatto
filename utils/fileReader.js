@@ -5,7 +5,8 @@ async function processFile(fileName, contentPromise, tempImagens, setRegistros) 
     const content = await contentPromise("string");
     const parsed = JSON.parse(content);
     if (Array.isArray(parsed.detections)) {
-      setRegistros(parsed.detections);
+      const considerAxes = parsed.description?.consider_axes;
+      setRegistros(parsed.detections.map(d => ({ ...d, consider_axes: d.consider_axes ?? d.description?.consider_axes ?? considerAxes })));
     } else {
       console.warn("JSON não é um array.");
     }

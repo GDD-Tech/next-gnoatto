@@ -124,7 +124,10 @@ export async function readProjectFolder(files) {
           try {
             const content = await file.text();
             const parsed = JSON.parse(content);
-            if (Array.isArray(parsed.detections)) records = parsed.detections;
+            if (Array.isArray(parsed.detections)) {
+              const considerAxes = parsed.description?.consider_axes;
+              records = parsed.detections.map(d => ({ ...d, consider_axes: d.consider_axes ?? d.description?.consider_axes ?? considerAxes }));
+            }
           } catch (e) {
             console.warn('Falha ao parsear JSON:', relativeName, e);
           }

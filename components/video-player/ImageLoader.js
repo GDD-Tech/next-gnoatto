@@ -15,6 +15,12 @@ import Toaster from "../toaster/Toaster";
 import ImportFile from "./ImportFile";
 import VehicleItemList from "./VehicleItemList";
 
+const SUGGESTION_CATEGORIES = [
+  ['passeio', 'Passeio'],
+  ['onibus', 'Onibus'],
+  ['caminhao', 'Caminhão'],
+];
+
 export default function ImageLoader(props) {
   // props.projectConfig: { serviceTitle, leftDirection, rightDirection } — set when in project mode
   // props.onFolderEnd: called when the last frame of this folder is classified
@@ -211,6 +217,28 @@ export default function ImageLoader(props) {
     setSelectedVehicle(vehicle);
   }, []);
 
+  // Sugestão da IA: resolve predicted_subclass (exportName) + direction ("left"/"right") do registro atual
+  const suggestion = useMemo(() => {
+    const subclass = selectedVehicle?.predicted_subclass;
+    const direction = String(selectedVehicle?.direction ?? '').toLowerCase();
+    if (!subclass || (direction !== 'left' && direction !== 'right')) return null;
+    const target = String(subclass).trim().toLowerCase();
+    for (const [type, label] of SUGGESTION_CATEGORIES) {
+      const vehicle = getVehicleData(type).find(v => String(v.exportName).toLowerCase() === target);
+      if (vehicle) {
+        // Popper de eixos só para veículos que podem ter eixo erguido (mesma regra do modal do painel)
+        const canRaiseAxles = label === 'Caminhão' && !vehicle.noRaisedAxles;
+        return { label, vehicle, direction, considerAxes: selectedVehicle?.consider_axes === true && canRaiseAxles };
+      }
+    }
+    return null;
+  }, [selectedVehicle]);
+
+  const handleApplySuggestion = (axles = 0) => {
+    if (!suggestion) return;
+    handleDirection(suggestion.label, suggestion.direction, suggestion.vehicle, axles, false);
+  };
+
   const resetToastMessage = () => {
     setToastMessage(null);
   }
@@ -309,7 +337,7 @@ export default function ImageLoader(props) {
               </Button>
             </Box>
           )}
-          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} onFolderComplete={props.onFolderEnd} fileName={props.fileName || ''} />
+          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} onFolderComplete={props.onFolderEnd} fileName={props.fileName || ''} suggestion={suggestion} onApplySuggestion={handleApplySuggestion} />
         </Box>
         {selectedVehicle && (
           <Box sx={{ p: 0.5, width: '100%', maxWidth: { xs: '100%', lg: '52vw' } }}>

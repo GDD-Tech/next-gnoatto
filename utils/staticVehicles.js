@@ -42,8 +42,8 @@ const onibusImgList = [
 ];
 
 const caminhaoImgList = [
-  { id: 'caminhao2', image: caminhao2, type:'caminhao', description: "2C (16)", exportName: '2C (16)', eixos: 2 },
-  { id: 'caminhao22', image: caminhao22, type:'caminhao', description: "2C (22)", exportName: '2C (22)', eixos: 2 },
+  { id: 'caminhao2', image: caminhao2, type:'caminhao', description: "2C (16)", exportName: '2C (16)', eixos: 2, noRaisedAxles: true },
+  { id: 'caminhao22', image: caminhao22, type:'caminhao', description: "2C (22)", exportName: '2C (22)', eixos: 2, noRaisedAxles: true },
   { id: 'caminhao3', image: caminhao3, type:'caminhao', description: "3C", exportName: '3C', eixos: 3 },
   { id: 'caminhao4', image: caminhao4, type:'caminhao', description: "4C", exportName: '4C', eixos: 4 },
   { id: 'caminhao5', image: caminhao5, type:'caminhao', description: "2S2 4 Eixos", exportName: '2S2', eixos: 4 },

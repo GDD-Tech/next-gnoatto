@@ -1,10 +1,30 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, ClickAwayListener, Fade, Paper, Popper, Tooltip, Typography } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
-export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion, onFolderComplete, fileName = '' }) {
+const RAISED_AXLES_OPTIONS = [0, 1, 2, 3, 4];
+
+export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion, onFolderComplete, fileName = '', suggestion = null, onApplySuggestion }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [axlesAnchorEl, setAxlesAnchorEl] = useState(null);
+
+  // Fecha o Popper de eixos ao trocar de registro
+  useEffect(() => { setAxlesAnchorEl(null); }, [currentIndex]);
+
+  const handleSuggestionClick = (event) => {
+    if (!suggestion) return;
+    if (suggestion.considerAxes) {
+      setAxlesAnchorEl(axlesAnchorEl ? null : event.currentTarget);
+      return;
+    }
+    onApplySuggestion?.(0);
+  };
+
+  const handleSelectAxles = (qty) => {
+    setAxlesAnchorEl(null);
+    onApplySuggestion?.(qty);
+  };
 
   useEffect(() => {
     if (!registros || registros.length === 0) return;
@@ -121,11 +141,58 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
             <div><strong>Status:</strong> {(() => { const s = getStatus(registroAtual); return <span style={{ color: s === "Completo" ? "#22C55E" : "#EF4444" }}>{s}</span>; })()}</div>
           </Box>
 
-          {/* ⏮️ ⏭️ Navegação */}
-          <div className="gno-flex gno-justify-center gno-gap-16">
-            <Button variant="contained" sx={{ backgroundColor: '#22423A' }} onClick={handlePrev} startIcon={<ArrowBack />} disabled={currentIndex === 0}>Anterior</Button>
-            <Button variant="contained" sx={{ backgroundColor: '#22423A' }} onClick={handleNext} endIcon={<ArrowForward />} disabled={currentIndex === registros.length - 1}>Proximo</Button>
-          </div>
+          {/* ⏮️ ⏭️ Navegação + 🤖 Sugestão da IA (alinhada à direita, abaixo de Status) */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 2 }}>
+            <Box />
+            <div className="gno-flex gno-justify-center gno-gap-16">
+              <Button variant="contained" sx={{ backgroundColor: '#22423A' }} onClick={handlePrev} startIcon={<ArrowBack />} disabled={currentIndex === 0}>Anterior</Button>
+              <Button variant="contained" sx={{ backgroundColor: '#22423A' }} onClick={handleNext} endIcon={<ArrowForward />} disabled={currentIndex === registros.length - 1}>Proximo</Button>
+            </div>
+            <Box sx={{ justifySelf: 'end' }}>
+              {suggestion && (
+                <ClickAwayListener onClickAway={() => setAxlesAnchorEl(null)}>
+                  <Box>
+                    <Tooltip title={axlesAnchorEl ? '' : `Sugestão da IA: ${suggestion.vehicle.description} (${suggestion.label})`} arrow>
+                      <Button
+                        variant={axlesAnchorEl ? 'contained' : 'outlined'}
+                        color={suggestion.direction === 'right' ? 'error' : 'success'}
+                        onClick={handleSuggestionClick}
+                        startIcon={suggestion.direction === 'left' ? <ArrowBack /> : null}
+                        endIcon={suggestion.direction === 'right' ? <ArrowForward /> : null}
+                        sx={{ fontWeight: 'bold', whiteSpace: 'nowrap', borderWidth: 2, '&:hover': { borderWidth: 2 } }}
+                      >
+                        {suggestion.vehicle.exportName}
+                      </Button>
+                    </Tooltip>
+                    <Popper open={Boolean(axlesAnchorEl)} anchorEl={axlesAnchorEl} placement="top-end" transition sx={{ zIndex: 1300 }}>
+                      {({ TransitionProps }) => (
+                        <Fade {...TransitionProps} timeout={150}>
+                          <Paper elevation={6} sx={{ p: 1.5, mb: 1 }} onKeyDown={(e) => { if (e.key === 'Escape') setAxlesAnchorEl(null); }}>
+                            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                              Eixos erguidos — {suggestion.vehicle.description}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              {RAISED_AXLES_OPTIONS.map((qty) => (
+                                <Button
+                                  key={qty}
+                                  variant="contained"
+                                  color={suggestion.direction === 'right' ? 'error' : 'success'}
+                                  onClick={() => handleSelectAxles(qty)}
+                                  sx={{ minWidth: 40 }}
+                                >
+                                  {qty}
+                                </Button>
+                              ))}
+                            </Box>
+                          </Paper>
+                        </Fade>
+                      )}
+                    </Popper>
+                  </Box>
+                </ClickAwayListener>
+              )}
+            </Box>
+          </Box>
         </>
       )}
       {!registroAtual && (

@@ -10,8 +10,10 @@ function VehicleItemList({ vehicleList, label, onVehicleClick, onHandleDirection
     onHandleDirection(label, direction, vehicle, 0, isNew);
   }
 
+  const canRaiseAxles = (vehicle) => label === 'Caminhão' && !vehicle?.noRaisedAxles;
+
   function handleVehicleClick(direction, vehicle) {
-    if (label === 'Caminhão') {
+    if (canRaiseAxles(vehicle)) {
       onVehicleClick(direction, label, vehicle, isNew);
     }
   }
@@ -39,7 +41,7 @@ function VehicleItemList({ vehicleList, label, onVehicleClick, onHandleDirection
               </Button>
               <div
                 style={{
-                  cursor: label === 'Caminhão' ? 'pointer' : 'default',
+                  cursor: canRaiseAxles(img) ? 'pointer' : 'default',
                   flex: '1',
                   display: 'flex',
                   justifyContent: 'center',
