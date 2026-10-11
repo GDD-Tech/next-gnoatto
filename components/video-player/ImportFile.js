@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
-export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion }) {
+export default function ImportFile({ onVehicleSelect, storedVehicles = [], registros, imagens, registerNext, startTrackId, loadVersion, fileName = '' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Ao carregar nova versão, posiciona no índice correto: último tratado+1 se continuar, ou 0
@@ -11,7 +11,14 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
     if (!registros || registros.length === 0) return;
     let targetIndex = 0;
     if (startTrackId) {
-      const foundIndex = registros.findIndex(r => String(r.track_id) === String(startTrackId));
+      const lastStored = storedVehicles[storedVehicles.length - 1];
+      let foundIndex = -1;
+      if (lastStored?.sequenceId != null) {
+        foundIndex = registros.findIndex(r => r.sequence_id != null && String(r.sequence_id) === String(lastStored.sequenceId));
+      }
+      if (foundIndex === -1) {
+        foundIndex = registros.findIndex(r => String(r.track_id) === String(startTrackId));
+      }
       if (foundIndex !== -1) {
         targetIndex = Math.min(foundIndex + 1, registros.length - 1);
       }
@@ -23,8 +30,14 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
 
 
   const getStatus = (registro) => {
-    if (!registro?.track_id) return "Pendente";
-    return storedVehicles.some(v => v.trackId === registro.track_id) ? "Completo" : "Pendente";
+    if (!registro) return "Pendente";
+    return storedVehicles.some(v => {
+      if (registro.sequence_id != null && v.sequenceId != null) {
+        return v.sequenceId === registro.sequence_id && v.fileName === fileName;
+      }
+      // Fallback para registros antigos sem sequenceId
+      return v.trackId && String(v.trackId) === String(registro.track_id);
+    }) ? "Completo" : "Pendente";
   };
 
   const handleNext = useCallback(() => {
@@ -100,7 +113,7 @@ export default function ImportFile({ onVehicleSelect, storedVehicles = [], regis
             {JSON.stringify(registroAtual, null, 2)}
           </pre> */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1 }}>
-            <div><strong>Id:</strong> {registroAtual.track_id}</div>
+            <div><strong>Id:</strong> {registroAtual.sequence_id ?? registroAtual.track_id}</div>
             <div><strong>Horario:</strong> {registroAtual.time}</div>
             <div><strong>Status:</strong> {(() => { const s = getStatus(registroAtual); return <span style={{ color: s === "Completo" ? "#22C55E" : "#EF4444" }}>{s}</span>; })()}</div>
           </Box>

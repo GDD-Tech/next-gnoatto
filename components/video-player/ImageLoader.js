@@ -103,19 +103,26 @@ export default function ImageLoader(props) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (props.continueFromLast && props.loadedRecords && props.loadedRecords.length > 0 && startTrackId) {
-      // Encontra o registro correspondente ao último trackId tratado
-      const record = props.loadedRecords.find(r => String(r.track_id) === String(startTrackId));
+      const lastStored = storedVehicles[storedVehicles.length - 1];
+      let record = null;
+      if (lastStored?.sequenceId != null) {
+        record = props.loadedRecords.find(r => r.sequence_id != null && String(r.sequence_id) === String(lastStored.sequenceId));
+      }
+      if (!record) {
+        record = props.loadedRecords.find(r => String(r.track_id) === String(startTrackId));
+      }
       if (record) {
         setSelectedVehicle(record);
       }
     }
-  }, [props.continueFromLast, props.loadedRecords, startTrackId]);
+  }, [props.continueFromLast, props.loadedRecords, startTrackId, storedVehicles]);
 
 
   const handleDirection = (label, direction, vehicle, axles, isNew) => {
     const object = {
       id: uuidv4(),
       trackId: isNew ? '' : selectedVehicle?.track_id,
+      sequenceId: isNew ? null : (selectedVehicle?.sequence_id ?? null),
       time: selectedVehicle?.time,
       date: selectedVehicle?.date,
       direction: direction === 'left' ? leftDirection : rightDirection,
@@ -285,7 +292,7 @@ export default function ImageLoader(props) {
               </Box>
             </Box>
           )}
-          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} />
+          <ImportFile onVehicleSelect={handleVehicleSelect} storedVehicles={storedVehicles} registros={props?.loadedRecords ?? []} imagens={props?.loadedImages ?? {}} registerNext={(fn) => (nextFnRef.current = fn)} startTrackId={startTrackId} loadVersion={props.loadVersion} fileName={props.fileName || ''} />
         </Box>
         {selectedVehicle && (
           <Box sx={{ p: 0.5, maxWidth: '52vw' }}>
