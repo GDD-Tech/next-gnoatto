@@ -6,12 +6,19 @@ import Mp4Player from "@/components/video-player/Mp4Player";
 import ProjectNavigation from "@/components/project-navigation/ProjectNavigation";
 import StartGuide from "@/components/main/StartGuide";
 import ProjectCompletionScreen from "@/components/main/ProjectCompletionScreen";
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography, Fab } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography, Fab, Box, CircularProgress } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { initVehicleStore, hasVehicles, clearVehicles } from "@/utils/vehicleStore";
 
 export default function Main() {
     const [darkMode, setDarkMode] = useState(false);
+    const [storeReady, setStoreReady] = useState(false);
+
+    // Carrega a contagem salva (IndexedDB) antes de renderizar os players
+    useEffect(() => {
+        initVehicleStore().finally(() => setStoreReady(true));
+    }, []);
 
     useEffect(() => {
         const saved = localStorage.getItem('darkMode');
@@ -97,9 +104,8 @@ export default function Main() {
 
     function loadZipData(result, filename) {
         if (typeof window === 'undefined') return;
-        const storedVehicles = localStorage.getItem('vehicleList');
         const storedFileName = localStorage.getItem('currentFileName');
-        const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
+        const hasRecords = hasVehicles();
 
         if (hasRecords) {
             if (storedFileName && filename !== storedFileName) {
@@ -137,9 +143,8 @@ export default function Main() {
 
     function loadMp4Data(file) {
         if (typeof window === 'undefined') return;
-        const storedVehicles = localStorage.getItem('vehicleList');
         const storedFileName = localStorage.getItem('currentFileName');
-        const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
+        const hasRecords = hasVehicles();
 
         if (hasRecords && storedFileName) {
             if (storedFileName !== file.name) {
@@ -171,8 +176,7 @@ export default function Main() {
 
     function loadProjectData(data) {
         if (typeof window === 'undefined') return;
-        const storedVehicles = localStorage.getItem('vehicleList');
-        const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
+        const hasRecords = hasVehicles();
 
         if (hasRecords) {
             setPendingFileData({ type: 'project', data });
@@ -226,7 +230,7 @@ export default function Main() {
 
     function handleConfirmDeleteAndLoad() {
         if (typeof window === 'undefined') return;
-        localStorage.removeItem('vehicleList');
+        clearVehicles();
         localStorage.removeItem('currentFileName');
         setClearVehiclesFlag(prev => prev + 1);
         if (pendingFileData) {
@@ -279,7 +283,7 @@ export default function Main() {
 
     function handleStartFromBeginning() {
         if (typeof window === 'undefined') return;
-        localStorage.removeItem('vehicleList');
+        clearVehicles();
         setClearVehiclesFlag(prev => prev + 1);
 
         if (pendingFileData) {
@@ -320,6 +324,17 @@ export default function Main() {
         setVideoFile(null);
         setRegistros([]);
         setImagens({});
+    }
+
+    if (!storeReady) {
+        return (
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+                    <CircularProgress />
+                </Box>
+            </ThemeProvider>
+        );
     }
 
     return (

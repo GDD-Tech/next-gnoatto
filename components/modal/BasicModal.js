@@ -39,8 +39,12 @@ export default function BasicModal({ isOpen, onClose, vehicle, left, right, dire
   ];
 
   function handleAxles(direction, qty){
-    onHandleDirection(null, direction, null, qty, isNew);
-    handleClose();
+    // Fecha o modal mesmo se o registro falhar (antes, um erro ao salvar deixava o modal aberto)
+    try {
+      onHandleDirection(null, direction, null, qty, isNew);
+    } finally {
+      handleClose();
+    }
   }
 
   return (

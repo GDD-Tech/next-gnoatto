@@ -1,6 +1,7 @@
 'use client'
 import { exportAsZip } from "@/utils/exportUtils";
 import { playCountSound } from "@/utils/soundUtils";
+import { getVehicles, saveVehicles, clearVehicles, onStorageError } from "@/utils/vehicleStore";
 import { getVehicleData } from "@/utils/staticVehicles";
 import AddIcon from '@mui/icons-material/Add';
 import Forward10Icon from '@mui/icons-material/Forward10';
@@ -50,13 +51,7 @@ export default function Mp4Player(props) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const stored = localStorage.getItem('vehicleList');
-    if (!stored) {
-      localStorage.setItem('vehicleList', JSON.stringify([]));
-      setStoredVehicles([]);
-    } else {
-      setStoredVehicles(JSON.parse(stored));
-    }
+    setStoredVehicles(getVehicles());
     // Load serviceTitle from localStorage
     const storedTitle = localStorage.getItem('serviceTitle');
     if (storedTitle) {
@@ -72,6 +67,11 @@ export default function Mp4Player(props) {
       setRightDirection(storedRightDirection);
     }
   }, []);
+
+  // Avisa o usuário se a gravação da contagem falhar
+  useEffect(() => onStorageError(() => {
+    handleToastMessage("Erro ao salvar a contagem no navegador! Exporte os dados para não perder o progresso.", "error");
+  }), []);
 
   // Save serviceTitle to localStorage whenever it changes
   useEffect(() => {
@@ -142,13 +142,13 @@ export default function Mp4Player(props) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (props.clearVehiclesFlag > 0) {
-      const stored = localStorage.getItem('vehicleList');
-      if (!stored) {
+      const stored = getVehicles();
+      if (!stored || stored.length === 0) {
         setStoredVehicles([]);
         setLeftDirection('');
         setRightDirection('');
       } else {
-        setStoredVehicles(JSON.parse(stored));
+        setStoredVehicles(stored);
       }
 
       // Sync startDateTime with localStorage in case it was reset
@@ -209,15 +209,12 @@ export default function Mp4Player(props) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (props.continueFromLast && videoRef.current && videoUrl) {
-      const storedVehicles = localStorage.getItem('vehicleList');
-      if (storedVehicles) {
-        const vehicles = JSON.parse(storedVehicles);
-        if (vehicles.length > 0) {
-          const lastVehicle = vehicles[vehicles.length - 1];
-          const videoTime = lastVehicle.videoTime || 0;
-          if (videoTime > 0) {
-            videoRef.current.currentTime = videoTime;
-          }
+      const vehicles = getVehicles();
+      if (vehicles.length > 0) {
+        const lastVehicle = vehicles[vehicles.length - 1];
+        const videoTime = lastVehicle.videoTime || 0;
+        if (videoTime > 0) {
+          videoRef.current.currentTime = videoTime;
         }
       }
     }
@@ -371,10 +368,10 @@ export default function Mp4Player(props) {
       return;
     }
 
-    const updatedList = [...storedVehicles];
-    updatedList.push(object);
+    const updatedList = [...storedVehicles, object];
     setStoredVehicles(updatedList);
-    localStorage.setItem('vehicleList', JSON.stringify(updatedList));
+    // Gravação assíncrona no IndexedDB — nunca lança exceção (falhas viram toast de erro)
+    saveVehicles(updatedList);
 
     playCountSound();
     handleToastMessage("Veículo adicionado!", "success");
@@ -446,12 +443,12 @@ export default function Mp4Player(props) {
   const deleteRow = (row) => {
     const newList = storedVehicles.filter(item => item.id !== row.id);
     setStoredVehicles(newList);
-    localStorage.setItem('vehicleList', JSON.stringify(newList));
+    saveVehicles(newList);
   };
 
   const deleteAll = () => {
     setStoredVehicles([]);
-    localStorage.removeItem('vehicleList');
+    clearVehicles();
   };
 
   const handleAddNewVehicle = () => {
@@ -500,7 +497,7 @@ export default function Mp4Player(props) {
 
       // Clear all data
       const currentFileName = localStorage.getItem('currentFileName');
-      localStorage.removeItem('vehicleList');
+      clearVehicles();
       localStorage.removeItem('serviceTitle');
       localStorage.removeItem('leftDirection');
       localStorage.removeItem('rightDirection');
