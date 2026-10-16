@@ -3,9 +3,17 @@ import { useState, useEffect } from "react";
 import MainHeader from "@/components/main-header/MainHeader";
 import ImageLoader from "@/components/video-player/ImageLoader";
 import Mp4Player from "@/components/video-player/Mp4Player";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, CircularProgress } from '@mui/material';
+import { initVehicleStore, hasVehicles, clearVehicles } from "@/utils/vehicleStore";
 
 export default function Main() {
+    const [storeReady, setStoreReady] = useState(false);
+
+    // Carrega a contagem salva (IndexedDB) antes de renderizar os players
+    useEffect(() => {
+        initVehicleStore().finally(() => setStoreReady(true));
+    }, []);
+
     const [mode, setMode] = useState('zip'); // 'zip' or 'mp4'
     const [videoFile, setVideoFile] = useState(null);
     const [registros, setRegistros] = useState([]);
@@ -27,9 +35,8 @@ export default function Main() {
     function loadZipData(result, filename) {
         // Check if there's a different file being loaded and records exist
         if (typeof window === 'undefined') return;
-        const storedVehicles = localStorage.getItem('vehicleList');
         const storedFileName = localStorage.getItem('currentFileName');
-        const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
+        const hasRecords = hasVehicles();
 
         // Compare with localStorage value instead of state (handles page reload case)
         if (hasRecords) {
@@ -73,9 +80,8 @@ export default function Main() {
 
     function loadMp4Data(file) {
         if (typeof window === 'undefined') return;
-        const storedVehicles = localStorage.getItem('vehicleList');
         const storedFileName = localStorage.getItem('currentFileName');
-        const hasRecords = storedVehicles && JSON.parse(storedVehicles).length > 0;
+        const hasRecords = hasVehicles();
 
         if (hasRecords && storedFileName) {
             if (storedFileName !== file.name) {
@@ -107,7 +113,7 @@ export default function Main() {
     function handleConfirmDeleteAndLoad() {
         // Clear existing records and filename
         if (typeof window === 'undefined') return;
-        localStorage.removeItem('vehicleList');
+        clearVehicles();
         localStorage.removeItem('currentFileName');
         // Notify ImageLoader to reload data from localStorage
         setClearVehiclesFlag(prev => prev + 1);
@@ -139,6 +145,13 @@ export default function Main() {
         setImportConflictType(null);
     }
 
+    if (!storeReady) {
+        return (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     return (
         <>

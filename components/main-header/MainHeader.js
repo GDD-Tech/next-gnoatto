@@ -27,6 +27,7 @@ import logo from '@/assets/logo.jpg'
 import { readFolder } from "../../utils/fileReader";
 import FullScreenSpinner from '../utility/FullScreenSpinner';
 import { FileDownload, RestartAlt, UploadFile } from '@mui/icons-material';
+import { getVehicles, saveVehicles } from '@/utils/vehicleStore';
 
 const drawerWidth = 240;
 const navItems = [{ label: 'Importar Arquivo', icon: <UploadFile /> }, { label: 'Resetar', icon: <RestartAlt /> }, { label: 'Exportar Dados', icon: <FileDownload /> }];
@@ -75,13 +76,7 @@ function MainHeader(props) {
     // Use setTimeout to ensure the spinner shows before heavy processing
     setTimeout(() => {
       try {
-        const raw = localStorage.getItem('vehicleList');
-        if (!raw) {
-          alert('Nenhum registro para exportar');
-          setLoading(false);
-          return;
-        }
-        const list = JSON.parse(raw);
+        const list = getVehicles();
         if (!Array.isArray(list) || list.length === 0) {
           alert('Nenhum registro para exportar');
           setLoading(false);
@@ -219,13 +214,7 @@ function MainHeader(props) {
     // Use setTimeout to ensure the spinner shows before heavy processing
     setTimeout(() => {
       try {
-        const raw = localStorage.getItem('vehicleList');
-        if (!raw) {
-          alert('Nenhum registro para exportar');
-          setLoading(false);
-          return;
-        }
-        const list = JSON.parse(raw);
+        const list = getVehicles();
         if (!Array.isArray(list) || list.length === 0) {
           alert('Nenhum registro para exportar');
           setLoading(false);
@@ -460,17 +449,16 @@ function MainHeader(props) {
       return;
     }
 
-    const raw = localStorage.getItem('vehicleList');
-    if (!raw) {
+    const list = getVehicles();
+    if (!list || list.length === 0) {
       alert('Nenhum registro encontrado no sistema.');
       setResetCurrentServiceDialog(false);
       return;
     }
 
     try {
-      const list = JSON.parse(raw);
       if (!Array.isArray(list)) {
-        localStorage.setItem('vehicleList', JSON.stringify([]));
+        saveVehicles([]);
         if (typeof props.onClearVehicles === 'function') props.onClearVehicles();
         setResetCurrentServiceDialog(false);
         return;
@@ -484,7 +472,7 @@ function MainHeader(props) {
       if (filteredList.length === initialCount) {
         alert('Nenhum registro encontrado especificamente para o arquivo: ' + targetName);
       } else {
-        localStorage.setItem('vehicleList', JSON.stringify(filteredList));
+        saveVehicles(filteredList);
         // Also clear start date time metadata for this file
         localStorage.removeItem(`startDateTime_${targetName}`);
 
